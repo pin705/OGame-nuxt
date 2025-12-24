@@ -7,38 +7,61 @@ definePageMeta({
   layout: 'game',
 })
 
-// Mock data
-const ships = ref([
-  { type: ShipType.TIEU_CHIEN_HAM, count: 150, isBuilding: false },
-  { type: ShipType.TRUNG_CHIEN_HAM, count: 45, isBuilding: true, buildCount: 10, endTime: new Date(Date.now() + 1800000) },
-  { type: ShipType.TUAN_DUONG_HAM, count: 20, isBuilding: false },
-  { type: ShipType.THIET_GIAP_HAM, count: 5, isBuilding: false },
-  { type: ShipType.HAC_LONG_HAM, count: 0, isBuilding: false },
-  { type: ShipType.VAN_TAI_NHO, count: 100, isBuilding: false },
-  { type: ShipType.VAN_TAI_LON, count: 30, isBuilding: false },
-  { type: ShipType.TAU_THUOC_DIA, count: 1, isBuilding: false },
-  { type: ShipType.TAU_DO_THAM, count: 50, isBuilding: false },
-  { type: ShipType.TAU_TAI_CHE, count: 10, isBuilding: false },
-])
+const { currentPlanet, buildQueue, fetchPlanet, fetchBuildQueue, buildShips, processQueue, isLoading } = useGame()
 
-const resources = ref({
-  tinhThach: 1250000,
-  nangLuongVuTru: 680000,
-  honThach: 320000,
+// Auto-refresh data
+const refreshInterval = ref<NodeJS.Timeout | null>(null)
+
+onMounted(async () => {
+  await Promise.all([fetchPlanet(), fetchBuildQueue()])
+  
+  // Process queue and refresh every 5 seconds
+  refreshInterval.value = setInterval(async () => {
+    await processQueue()
+  }, 5000)
 })
 
-const shipyardLevel = 6
+onUnmounted(() => {
+  if (refreshInterval.value) {
+    clearInterval(refreshInterval.value)
+  }
+})
+
+// Get ships from planet
+const ships = computed(() => {
+  const planetShips = currentPlanet.value?.planet?.ships || []
+  // All ship types with current count
+  return Object.values(ShipType).map(type => {
+    const existing = planetShips.find((s: any) => s.type === type)
+    return {
+      type,
+      count: existing?.count || 0,
+    }
+  })
+})
+
+// Resources from planet
+const resources = computed(() => ({
+  tinhThach: currentPlanet.value?.planet?.resources?.tinhThach || 0,
+  nangLuongVuTru: currentPlanet.value?.planet?.resources?.nangLuongVuTru || 0,
+  honThach: currentPlanet.value?.planet?.resources?.honThach || 0,
+}))
+
+// Shipyard level from planet buildings
+const shipyardLevel = computed(() => {
+  const buildings = currentPlanet.value?.planet?.buildings || []
+  return buildings.find((b: any) => b.type === 'XUONG_DONG_TAU')?.level || 0
+})
+
 const buildQuantity = ref<Record<string, number>>({})
 
 const categories = [
   {
     name: 'Tàu Chiến',
-    icon: 'mdi:sword',
     types: [ShipType.TIEU_CHIEN_HAM, ShipType.TRUNG_CHIEN_HAM, ShipType.TUAN_DUONG_HAM, ShipType.THIET_GIAP_HAM, ShipType.HAC_LONG_HAM],
   },
   {
     name: 'Tàu Hỗ Trợ',
-    icon: 'mdi:truck',
     types: [ShipType.VAN_TAI_NHO, ShipType.VAN_TAI_LON, ShipType.TAU_THUOC_DIA, ShipType.TAU_DO_THAM, ShipType.TAU_TAI_CHE],
   },
 ]
@@ -48,10 +71,12 @@ const activeCategory = ref('Tàu Chiến')
 const filteredShips = computed(() => {
   const category = categories.find(c => c.name === activeCategory.value)
   if (!category) return ships.value
-  return ships.value.filter(s => category.types.includes(s.type))
+  return ships.value.filter(s => category.types.includes(s.type as ShipType))
 })
 
-const isAnyBuilding = computed(() => ships.value.some(s => s.isBuilding))
+// Check if ships are being built
+const isAnyBuilding = computed(() => buildQueue.value?.ships?.length > 0)
+const shipBuildQueue = computed(() => buildQueue.value?.ships?.[0])
 
 const canAffordShip = (type: ShipType, count: number = 1) => {
   const cost = calculateShipCost(type, count)
@@ -63,31 +88,36 @@ const canAffordShip = (type: ShipType, count: number = 1) => {
 }
 
 const maxBuildable = (type: ShipType) => {
-  const cost = SHIPS[type].cost
+  const config = SHIPS[type]
+  if (!config) return 0
+  const cost = config.cost
   const byMetal = cost.tinhThach > 0 ? Math.floor(resources.value.tinhThach / cost.tinhThach) : Infinity
   const byCrystal = cost.nangLuongVuTru > 0 ? Math.floor(resources.value.nangLuongVuTru / cost.nangLuongVuTru) : Infinity
   const byDeut = cost.honThach > 0 ? Math.floor(resources.value.honThach / cost.honThach) : Infinity
   return Math.min(byMetal, byCrystal, byDeut, 9999)
 }
 
-const getIconForShip = (type: ShipType) => {
-  const iconMap: Record<string, string> = {
-    [ShipType.TIEU_CHIEN_HAM]: 'mdi:airplane',
-    [ShipType.TRUNG_CHIEN_HAM]: 'mdi:airplane-takeoff',
-    [ShipType.TUAN_DUONG_HAM]: 'mdi:ship-wheel',
-    [ShipType.THIET_GIAP_HAM]: 'mdi:tank',
-    [ShipType.HAC_LONG_HAM]: 'mdi:dragon',
-    [ShipType.VAN_TAI_NHO]: 'mdi:truck',
-    [ShipType.VAN_TAI_LON]: 'mdi:truck-cargo-container',
-    [ShipType.TAU_THUOC_DIA]: 'mdi:earth-plus',
-    [ShipType.TAU_DO_THAM]: 'mdi:satellite-variant',
-    [ShipType.TAU_TAI_CHE]: 'mdi:recycle',
-  }
-  return iconMap[type] || 'mdi:rocket'
-}
-
 const setMaxQuantity = (type: ShipType) => {
   buildQuantity.value[type] = maxBuildable(type)
+}
+
+const buildError = ref<string | null>(null)
+
+const handleBuild = async (type: ShipType) => {
+  const count = buildQuantity.value[type] || 1
+  if (count < 1 || !canAffordShip(type, count)) return
+  
+  buildError.value = null
+  const result = await buildShips(type, count)
+  
+  if (!result.success) {
+    buildError.value = result.error || 'Chế tạo thất bại'
+    setTimeout(() => {
+      buildError.value = null
+    }, 3000)
+  } else {
+    buildQuantity.value[type] = 0
+  }
 }
 </script>
 
@@ -100,14 +130,27 @@ const setMaxQuantity = (type: ShipType) => {
     </div>
 
     <!-- Shipyard Info -->
-    <div class="glass-card p-4 flex items-center gap-4">
+    <div v-if="currentPlanet" class="glass-card p-4 flex items-center gap-4">
       <div class="w-12 h-12 rounded-lg bg-secondary-500/20 flex items-center justify-center">
-        <Icon name="mdi:rocket-launch" class="text-2xl text-secondary-400" />
+        <IconsXuongDongTau class="w-8 h-8 text-secondary-400" />
       </div>
       <div>
         <p class="font-medium text-slate-200">Xưởng Đóng Tàu</p>
         <p class="text-sm text-slate-400">Cấp {{ shipyardLevel }} - Chế tạo nhanh hơn {{ shipyardLevel * 10 }}%</p>
       </div>
+    </div>
+
+    <!-- Error Message -->
+    <div v-if="buildError" class="glass-card p-4 border-l-4 border-red-500">
+      <div class="flex items-center gap-3">
+        <IconsCanhBao class="w-6 h-6 text-red-400" />
+        <p class="text-red-400">{{ buildError }}</p>
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div v-if="isLoading && !currentPlanet" class="flex items-center justify-center py-12">
+      <div class="animate-spin w-8 h-8 border-2 border-primary-500 border-t-transparent rounded-full"></div>
     </div>
 
     <!-- Category Tabs -->
@@ -123,18 +166,22 @@ const setMaxQuantity = (type: ShipType) => {
         "
         @click="activeCategory = category.name"
       >
-        <Icon :name="category.icon" />
+        <IconsChienHam class="w-5 h-5" />
         {{ category.name }}
       </button>
     </div>
 
     <!-- Building Queue -->
-    <div v-if="isAnyBuilding" class="glass-card p-4 border-l-4 border-secondary-500">
+    <div v-if="shipBuildQueue" class="glass-card p-4 border-l-4 border-secondary-500">
       <div class="flex items-center gap-3">
-        <Icon name="mdi:hammer-wrench" class="text-2xl text-secondary-400 animate-spin" />
+        <IconsXuongDongTau class="w-6 h-6 text-secondary-400 animate-pulse" />
         <div class="flex-1">
-          <p class="font-medium text-slate-200">Đang chế tạo tàu</p>
-          <p class="text-sm text-slate-400">Tiến độ sẽ hoàn thành trong 30 phút</p>
+          <p class="font-medium text-slate-200">
+            Đang chế tạo {{ shipBuildQueue.count }} {{ SHIPS[shipBuildQueue.type as ShipType]?.name || shipBuildQueue.type }}
+          </p>
+          <p class="text-sm text-slate-400">
+            Còn {{ Math.floor((shipBuildQueue.remainingSeconds || 0) / 60) }}m {{ (shipBuildQueue.remainingSeconds || 0) % 60 }}s
+          </p>
         </div>
       </div>
     </div>
@@ -149,7 +196,7 @@ const setMaxQuantity = (type: ShipType) => {
       >
         <div class="flex items-start gap-4">
           <div class="w-14 h-14 rounded-lg bg-secondary-900/30 flex items-center justify-center flex-shrink-0">
-            <Icon :name="getIconForShip(ship.type)" class="text-3xl text-secondary-400" />
+            <IconsChienHam class="w-8 h-8 text-secondary-400" />
           </div>
           
           <div class="flex-1">
@@ -167,19 +214,19 @@ const setMaxQuantity = (type: ShipType) => {
             <!-- Stats -->
             <div class="flex flex-wrap gap-3 text-xs text-slate-400 mb-3">
               <span class="flex items-center gap-1">
-                <Icon name="mdi:sword" class="text-red-400" />
+                <IconsTanCong class="w-3.5 h-3.5 text-red-400" />
                 {{ SHIPS[ship.type].stats.attack }}
               </span>
               <span class="flex items-center gap-1">
-                <Icon name="mdi:shield" class="text-blue-400" />
+                <IconsKhienLuc class="w-3.5 h-3.5 text-blue-400" />
                 {{ SHIPS[ship.type].stats.defense }}
               </span>
               <span class="flex items-center gap-1">
-                <Icon name="mdi:package-variant" class="text-yellow-400" />
+                <IconsVanChuyen class="w-3.5 h-3.5 text-yellow-400" />
                 {{ formatNumber(SHIPS[ship.type].stats.cargo) }}
               </span>
               <span class="flex items-center gap-1">
-                <Icon name="mdi:speedometer" class="text-green-400" />
+                <IconsTocDo class="w-3.5 h-3.5 text-green-400" />
                 {{ formatNumber(SHIPS[ship.type].stats.speed) }}
               </span>
             </div>
@@ -188,16 +235,16 @@ const setMaxQuantity = (type: ShipType) => {
             <div class="mb-3">
               <p class="text-xs text-slate-500 mb-1">Chi phí/tàu:</p>
               <div class="flex flex-wrap gap-2 text-xs">
-                <span class="resource-metal">
-                  <Icon name="mdi:gold" class="text-sm" />
+                <span class="resource-metal flex items-center gap-1">
+                  <IconsTinhThach class="w-4 h-4" />
                   {{ formatNumber(SHIPS[ship.type].cost.tinhThach) }}
                 </span>
-                <span class="resource-crystal">
-                  <Icon name="mdi:diamond-stone" class="text-sm" />
+                <span class="resource-crystal flex items-center gap-1">
+                  <IconsNangLuong class="w-4 h-4" />
                   {{ formatNumber(SHIPS[ship.type].cost.nangLuongVuTru) }}
                 </span>
-                <span v-if="SHIPS[ship.type].cost.honThach > 0" class="resource-deuterium">
-                  <Icon name="mdi:water" class="text-sm" />
+                <span v-if="SHIPS[ship.type].cost.honThach > 0" class="resource-deuterium flex items-center gap-1">
+                  <IconsHonThach class="w-4 h-4" />
                   {{ formatNumber(SHIPS[ship.type].cost.honThach) }}
                 </span>
               </div>
@@ -223,8 +270,9 @@ const setMaxQuantity = (type: ShipType) => {
                 :disabled="!canAffordShip(ship.type, buildQuantity[ship.type] || 1) || isAnyBuilding"
                 class="btn-secondary flex-1 text-sm"
                 :class="{ 'opacity-50 cursor-not-allowed': !canAffordShip(ship.type, buildQuantity[ship.type] || 1) || isAnyBuilding }"
+                @click="handleBuild(ship.type)"
               >
-                <Icon name="mdi:hammer" />
+                <IconsXuongDongTau class="w-4 h-4" />
                 Chế tạo
               </button>
             </div>

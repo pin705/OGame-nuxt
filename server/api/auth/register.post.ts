@@ -1,4 +1,5 @@
 import { BuildingType } from '~/types/game'
+import { hashPassword, generateToken, setAuthCookie } from '~~/server/utils/auth'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
@@ -39,8 +40,8 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // Hash password (in production, use bcrypt)
-    const passwordHash = password // TODO: Use bcrypt.hash(password, 10)
+    // Hash password
+    const passwordHash = await hashPassword(password)
 
     // Generate starting coordinates
     let coordinates = generateCoordinates()
@@ -95,10 +96,20 @@ export default defineEventHandler(async (event) => {
     player.homePlanet = planet._id
     await player.save()
 
+    // Generate auth token
+    const token = generateToken({
+      playerId: player._id.toString(),
+      username: player.username,
+    })
+
+    // Set auth cookie
+    setAuthCookie(event, token)
+
     return {
       success: true,
       message: 'Registration successful',
       data: {
+        token,
         player: {
           id: player._id,
           username: player.username,

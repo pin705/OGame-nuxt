@@ -7,50 +7,27 @@ definePageMeta({
   layout: 'game',
 })
 
+const { currentPlanet, isLoading } = useGame()
+const { fleets, isLoading: fleetsLoading, fetchFleets, sendFleet, recallFleet, getFleetCountdown } = useFleet()
+
+// Fetch fleets on mount
+onMounted(() => {
+  fetchFleets()
+})
+
 // Available ships on current planet
-const availableShips = ref([
-  { type: ShipType.TIEU_CHIEN_HAM, count: 150 },
-  { type: ShipType.TRUNG_CHIEN_HAM, count: 45 },
-  { type: ShipType.TUAN_DUONG_HAM, count: 20 },
-  { type: ShipType.THIET_GIAP_HAM, count: 5 },
-  { type: ShipType.VAN_TAI_NHO, count: 100 },
-  { type: ShipType.VAN_TAI_LON, count: 30 },
-  { type: ShipType.TAU_DO_THAM, count: 50 },
-  { type: ShipType.TAU_TAI_CHE, count: 10 },
-])
+const availableShips = computed(() => {
+  if (!currentPlanet.value?.ships) return []
+  const ships = currentPlanet.value.ships as Record<string, number>
+  return Object.entries(ships)
+    .filter(([_, count]) => count > 0)
+    .map(([type, count]) => ({
+      type: type as ShipType,
+      count: count as number,
+    }))
+})
 
 const selectedShips = ref<Record<string, number>>({})
-
-// Active fleets
-const activeFleets = ref([
-  {
-    id: '1',
-    mission: FleetMission.TAN_CONG,
-    origin: { galaxy: 1, system: 250, position: 8 },
-    destination: { galaxy: 1, system: 245, position: 7 },
-    ships: [
-      { type: ShipType.TIEU_CHIEN_HAM, count: 50 },
-      { type: ShipType.TRUNG_CHIEN_HAM, count: 20 },
-    ],
-    departureTime: new Date(Date.now() - 1800000),
-    arrivalTime: new Date(Date.now() + 1800000),
-    status: 'DEPARTING',
-  },
-  {
-    id: '2',
-    mission: FleetMission.VAN_CHUYEN,
-    origin: { galaxy: 1, system: 250, position: 8 },
-    destination: { galaxy: 1, system: 260, position: 4 },
-    ships: [
-      { type: ShipType.VAN_TAI_LON, count: 10 },
-    ],
-    resources: { tinhThach: 100000, nangLuongVuTru: 50000, honThach: 25000 },
-    departureTime: new Date(Date.now() - 3600000),
-    arrivalTime: new Date(Date.now() - 600000),
-    returnTime: new Date(Date.now() + 2400000),
-    status: 'RETURNING',
-  },
-])
 
 // Fleet dispatch form
 const dispatch = reactive({
@@ -61,12 +38,12 @@ const dispatch = reactive({
 })
 
 const missions = [
-  { value: FleetMission.TAN_CONG, label: 'Tấn công', icon: 'mdi:sword' },
-  { value: FleetMission.VAN_CHUYEN, label: 'Vận chuyển', icon: 'mdi:truck' },
-  { value: FleetMission.TRIEN_KHAI, label: 'Triển khai', icon: 'mdi:flag' },
-  { value: FleetMission.DO_THAM, label: 'Do thám', icon: 'mdi:eye' },
-  { value: FleetMission.TAI_CHE, label: 'Tái chế', icon: 'mdi:recycle' },
-  { value: FleetMission.THUOC_DIA, label: 'Thuộc địa', icon: 'mdi:earth-plus' },
+  { value: FleetMission.TAN_CONG, label: 'Tấn công' },
+  { value: FleetMission.VAN_CHUYEN, label: 'Vận chuyển' },
+  { value: FleetMission.TRIEN_KHAI, label: 'Triển khai' },
+  { value: FleetMission.DO_THAM, label: 'Do thám' },
+  { value: FleetMission.TAI_CHE, label: 'Tái chế' },
+  { value: FleetMission.THUOC_DIA, label: 'Thuộc địa' },
 ]
 
 const totalSelectedShips = computed(() => {
@@ -83,14 +60,59 @@ const clearSelection = () => {
   selectedShips.value = {}
 }
 
-const getMissionIcon = (mission: FleetMission) => {
-  const found = missions.find(m => m.value === mission)
-  return found?.icon || 'mdi:rocket'
-}
-
 const getMissionLabel = (mission: FleetMission) => {
   const found = missions.find(m => m.value === mission)
   return found?.label || mission
+}
+
+const fleetError = ref<string | null>(null)
+const isSending = ref(false)
+
+const handleSendFleet = async () => {
+  if (totalSelectedShips.value === 0) return
+  
+  fleetError.value = null
+  isSending.value = true
+  
+  try {
+    // Prepare ships array
+    const ships = Object.entries(selectedShips.value)
+      .filter(([_, count]) => count > 0)
+      .map(([type, count]) => ({
+        type: type as ShipType,
+        count: count as number,
+      }))
+    
+    const result = await sendFleet({
+      ships,
+      destination: dispatch.destination,
+      mission: dispatch.mission,
+      speed: dispatch.speed,
+      resources: dispatch.mission === FleetMission.VAN_CHUYEN ? dispatch.resources : undefined,
+    })
+    
+    if (!result.success) {
+      fleetError.value = result.error || 'Gửi hạm đội thất bại'
+      setTimeout(() => {
+        fleetError.value = null
+      }, 3000)
+    } else {
+      // Reset selection
+      clearSelection()
+    }
+  } finally {
+    isSending.value = false
+  }
+}
+
+const handleRecallFleet = async (fleetId: string) => {
+  const result = await recallFleet(fleetId)
+  if (!result.success) {
+    fleetError.value = result.error || 'Thu hồi hạm đội thất bại'
+    setTimeout(() => {
+      fleetError.value = null
+    }, 3000)
+  }
 }
 </script>
 
@@ -100,6 +122,19 @@ const getMissionLabel = (mission: FleetMission) => {
     <div>
       <h1 class="text-2xl font-display font-bold">Hạm Đội</h1>
       <p class="text-slate-400">Quản lý và điều khiển hạm đội của bạn</p>
+    </div>
+
+    <!-- Error Message -->
+    <div v-if="fleetError" class="glass-card p-4 border-l-4 border-red-500">
+      <div class="flex items-center gap-3">
+        <IconsCanhBao class="w-6 h-6 text-red-400" />
+        <p class="text-red-400">{{ fleetError }}</p>
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div v-if="(isLoading || fleetsLoading) && !currentPlanet" class="flex items-center justify-center py-12">
+      <div class="animate-spin w-8 h-8 border-2 border-primary-500 border-t-transparent rounded-full"></div>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -116,18 +151,23 @@ const getMissionLabel = (mission: FleetMission) => {
           </div>
         </template>
 
-        <div class="space-y-2">
+        <div v-if="availableShips.length === 0" class="text-center py-8 text-slate-500">
+          <IconsChienHam class="w-12 h-12 mx-auto mb-3 opacity-50" />
+          <p>Không có tàu nào trên hành tinh này</p>
+        </div>
+
+        <div v-else class="space-y-2">
           <div
             v-for="ship in availableShips"
             :key="ship.type"
             class="flex items-center gap-4 p-3 rounded-lg bg-space-700/30"
           >
             <div class="w-10 h-10 rounded-lg bg-space-700 flex items-center justify-center flex-shrink-0">
-              <Icon name="mdi:rocket" class="text-xl text-slate-400" />
+              <IconsChienHam class="w-6 h-6 text-slate-400" />
             </div>
             
             <div class="flex-1">
-              <p class="font-medium text-slate-200 text-sm">{{ SHIPS[ship.type].name }}</p>
+              <p class="font-medium text-slate-200 text-sm">{{ SHIPS[ship.type]?.name || ship.type }}</p>
               <p class="text-xs text-slate-500">Sẵn có: {{ ship.count }}</p>
             </div>
 
@@ -201,7 +241,7 @@ const getMissionLabel = (mission: FleetMission) => {
                 "
                 @click="dispatch.mission = mission.value"
               >
-                <Icon :name="mission.icon" class="text-xl" />
+                <IconsHamDoi class="w-5 h-5" />
                 <span class="text-xs">{{ mission.label }}</span>
               </button>
             </div>
@@ -229,7 +269,10 @@ const getMissionLabel = (mission: FleetMission) => {
             <label class="label">Tài nguyên vận chuyển</label>
             <div class="grid grid-cols-3 gap-2">
               <div>
-                <label class="text-xs text-slate-500">Tinh Thạch</label>
+                <label class="text-xs text-slate-500 flex items-center gap-1">
+                  <IconsTinhThach class="w-3 h-3" />
+                  Tinh Thạch
+                </label>
                 <input
                   v-model.number="dispatch.resources.tinhThach"
                   type="number"
@@ -238,7 +281,10 @@ const getMissionLabel = (mission: FleetMission) => {
                 >
               </div>
               <div>
-                <label class="text-xs text-slate-500">Năng Lượng VT</label>
+                <label class="text-xs text-slate-500 flex items-center gap-1">
+                  <IconsNangLuong class="w-3 h-3" />
+                  Năng Lượng VT
+                </label>
                 <input
                   v-model.number="dispatch.resources.nangLuongVuTru"
                   type="number"
@@ -247,7 +293,10 @@ const getMissionLabel = (mission: FleetMission) => {
                 >
               </div>
               <div>
-                <label class="text-xs text-slate-500">Hồn Thạch</label>
+                <label class="text-xs text-slate-500 flex items-center gap-1">
+                  <IconsHonThach class="w-3 h-3" />
+                  Hồn Thạch
+                </label>
                 <input
                   v-model.number="dispatch.resources.honThach"
                   type="number"
@@ -260,28 +309,29 @@ const getMissionLabel = (mission: FleetMission) => {
 
           <!-- Launch Button -->
           <button
-            :disabled="totalSelectedShips === 0"
-            class="btn-primary w-full"
-            :class="{ 'opacity-50 cursor-not-allowed': totalSelectedShips === 0 }"
+            :disabled="totalSelectedShips === 0 || isSending"
+            class="btn-primary w-full flex items-center justify-center gap-2"
+            :class="{ 'opacity-50 cursor-not-allowed': totalSelectedShips === 0 || isSending }"
+            @click="handleSendFleet"
           >
-            <Icon name="mdi:rocket-launch" />
-            Xuất phát hạm đội
+            <IconsHamDoi class="w-5 h-5" />
+            {{ isSending ? 'Đang gửi...' : 'Xuất phát hạm đội' }}
           </button>
         </div>
       </UiCard>
     </div>
 
     <!-- Active Fleets -->
-    <UiCard title="Hạm Đội Đang Hoạt Động" :subtitle="`${activeFleets.length} hạm đội đang di chuyển`">
-      <div v-if="activeFleets.length === 0" class="text-center py-8 text-slate-500">
-        <Icon name="mdi:ship-wheel" class="text-5xl mb-3 opacity-50" />
+    <UiCard title="Hạm Đội Đang Hoạt Động" :subtitle="`${fleets.length} hạm đội đang di chuyển`">
+      <div v-if="fleets.length === 0" class="text-center py-8 text-slate-500">
+        <IconsHamDoi class="w-12 h-12 mx-auto mb-3 opacity-50" />
         <p>Không có hạm đội nào đang hoạt động</p>
       </div>
 
       <div v-else class="space-y-4">
         <div
-          v-for="fleet in activeFleets"
-          :key="fleet.id"
+          v-for="fleet in fleets"
+          :key="fleet._id"
           class="glass-card p-4"
           :class="{
             'border-l-4 border-red-500': fleet.mission === FleetMission.TAN_CONG,
@@ -292,7 +342,7 @@ const getMissionLabel = (mission: FleetMission) => {
           <div class="flex flex-wrap items-center gap-4">
             <!-- Mission Icon -->
             <div class="w-12 h-12 rounded-lg bg-space-700 flex items-center justify-center">
-              <Icon :name="getMissionIcon(fleet.mission)" class="text-2xl text-primary-400" />
+              <IconsHamDoi class="w-8 h-8 text-primary-400" />
             </div>
 
             <!-- Fleet Info -->
@@ -312,9 +362,9 @@ const getMissionLabel = (mission: FleetMission) => {
                 </span>
               </div>
               
-              <p class="text-sm text-slate-400">
+              <p class="text-sm text-slate-400 flex items-center gap-1">
                 {{ formatCoordinates(fleet.origin) }}
-                <Icon name="mdi:arrow-right" class="mx-1" />
+                <IconsMuiTen class="w-4 h-4 mx-1" />
                 {{ formatCoordinates(fleet.destination) }}
               </p>
 
@@ -325,7 +375,7 @@ const getMissionLabel = (mission: FleetMission) => {
                   :key="ship.type"
                   class="text-xs px-2 py-1 rounded bg-space-700 text-slate-300"
                 >
-                  {{ SHIPS[ship.type].name }} x{{ ship.count }}
+                  {{ SHIPS[ship.type]?.name || ship.type }} x{{ ship.count }}
                 </span>
               </div>
             </div>
@@ -335,9 +385,13 @@ const getMissionLabel = (mission: FleetMission) => {
               <p class="text-xs text-slate-500">
                 {{ fleet.status === 'RETURNING' ? 'Về lúc' : 'Đến lúc' }}
               </p>
-              <p class="font-mono text-lg text-accent-400">30:00</p>
-              <button class="btn-ghost text-xs text-red-400 hover:bg-red-500/10 mt-2">
-                <Icon name="mdi:keyboard-return" />
+              <p class="font-mono text-lg text-accent-400">{{ getFleetCountdown(fleet) }}</p>
+              <button 
+                v-if="fleet.status === 'DEPARTING'"
+                class="btn-ghost text-xs text-red-400 hover:bg-red-500/10 mt-2 flex items-center gap-1"
+                @click="handleRecallFleet(fleet._id)"
+              >
+                <IconsQuayLai class="w-4 h-4" />
                 Thu hồi
               </button>
             </div>
@@ -345,16 +399,16 @@ const getMissionLabel = (mission: FleetMission) => {
 
           <!-- Resources (if transport) -->
           <div v-if="fleet.resources" class="flex gap-4 mt-3 pt-3 border-t border-space-700">
-            <span class="resource-metal text-xs">
-              <Icon name="mdi:gold" />
+            <span class="resource-metal text-xs flex items-center gap-1">
+              <IconsTinhThach class="w-4 h-4" />
               {{ formatNumber(fleet.resources.tinhThach) }}
             </span>
-            <span class="resource-crystal text-xs">
-              <Icon name="mdi:diamond-stone" />
+            <span class="resource-crystal text-xs flex items-center gap-1">
+              <IconsNangLuong class="w-4 h-4" />
               {{ formatNumber(fleet.resources.nangLuongVuTru) }}
             </span>
-            <span class="resource-deuterium text-xs">
-              <Icon name="mdi:water" />
+            <span class="resource-deuterium text-xs flex items-center gap-1">
+              <IconsHonThach class="w-4 h-4" />
               {{ formatNumber(fleet.resources.honThach) }}
             </span>
           </div>

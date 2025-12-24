@@ -3,6 +3,9 @@ definePageMeta({
   layout: 'default',
 })
 
+const auth = useAuth()
+const router = useRouter()
+
 const form = reactive({
   email: '',
   password: '',
@@ -11,16 +14,23 @@ const form = reactive({
 const isLoading = ref(false)
 const error = ref('')
 
+// Redirect if already logged in
+onMounted(async () => {
+  await auth.init()
+  if (auth.isAuthenticated.value) {
+    router.push('/game/overview')
+  }
+})
+
 const handleLogin = async () => {
   isLoading.value = true
   error.value = ''
   
   try {
-    // TODO: Implement actual login
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    navigateTo('/game/overview')
-  } catch (e) {
-    error.value = 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.'
+    await auth.login(form.email, form.password)
+    await router.push('/game/overview')
+  } catch (e: any) {
+    error.value = e.message || 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.'
   } finally {
     isLoading.value = false
   }

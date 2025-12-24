@@ -3,6 +3,9 @@ definePageMeta({
   layout: 'default',
 })
 
+const auth = useAuth()
+const router = useRouter()
+
 const form = reactive({
   username: '',
   email: '',
@@ -13,9 +16,27 @@ const form = reactive({
 const isLoading = ref(false)
 const error = ref('')
 
+// Redirect if already logged in
+onMounted(async () => {
+  await auth.init()
+  if (auth.isAuthenticated.value) {
+    router.push('/game/overview')
+  }
+})
+
 const handleRegister = async () => {
   if (form.password !== form.confirmPassword) {
     error.value = 'Mật khẩu xác nhận không khớp!'
+    return
+  }
+
+  if (form.password.length < 6) {
+    error.value = 'Mật khẩu phải có ít nhất 6 ký tự!'
+    return
+  }
+
+  if (form.username.length < 3 || form.username.length > 20) {
+    error.value = 'Tên chiến sĩ phải từ 3-20 ký tự!'
     return
   }
 
@@ -23,11 +44,10 @@ const handleRegister = async () => {
   error.value = ''
   
   try {
-    // TODO: Implement actual registration
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    navigateTo('/game/overview')
-  } catch (e) {
-    error.value = 'Đăng ký thất bại. Vui lòng thử lại.'
+    await auth.register(form.username, form.email, form.password)
+    await router.push('/game/overview')
+  } catch (e: any) {
+    error.value = e.message || 'Đăng ký thất bại. Vui lòng thử lại.'
   } finally {
     isLoading.value = false
   }

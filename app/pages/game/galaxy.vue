@@ -3,48 +3,49 @@ definePageMeta({
   layout: 'game',
 })
 
-const currentGalaxy = ref(1)
-const currentSystem = ref(250)
+const { player } = useAuth()
+const { currentGalaxy, currentSystem, systemView, isLoading, fetchSystem, changeGalaxy, changeSystem, jumpTo, formatCoords } = useGalaxy()
 
-const systemPlanets = ref([
-  { position: 1, planet: null },
-  { position: 2, planet: { name: 'Hoang Mạc Alpha', owner: 'StarLord', level: 25, alliance: 'VN Elite' } },
-  { position: 3, planet: null },
-  { position: 4, planet: { name: 'Tinh Cầu X', owner: 'DarkMatter', level: 18, alliance: null } },
-  { position: 5, planet: null },
-  { position: 6, planet: null },
-  { position: 7, planet: { name: 'Neo Earth', owner: 'Commander', level: 32, alliance: 'Warriors' } },
-  { position: 8, planet: { name: 'Hành Tinh Mẫu', owner: 'LaPhong', level: 15, alliance: null, isOwn: true } },
-  { position: 9, planet: null },
-  { position: 10, planet: { name: 'Dark World', owner: 'Phantom', level: 22, alliance: 'Shadow' } },
-  { position: 11, planet: null },
-  { position: 12, planet: null },
-  { position: 13, planet: { name: 'Ice Giant', owner: 'Frozen', level: 28, alliance: 'Arctic' } },
-  { position: 14, planet: null },
-  { position: 15, planet: null },
-])
+// Fetch initial data
+onMounted(() => {
+  fetchSystem()
+})
 
 const navigateSystem = (direction: 'prev' | 'next') => {
   if (direction === 'prev') {
-    if (currentSystem.value > 1) currentSystem.value--
-    else {
+    if (currentSystem.value > 1) {
+      changeSystem(-1)
+    } else {
       currentSystem.value = 499
-      if (currentGalaxy.value > 1) currentGalaxy.value--
-      else currentGalaxy.value = 9
+      if (currentGalaxy.value > 1) {
+        changeGalaxy(-1)
+      } else {
+        currentGalaxy.value = 9
+      }
+      fetchSystem()
     }
   } else {
-    if (currentSystem.value < 499) currentSystem.value++
-    else {
+    if (currentSystem.value < 499) {
+      changeSystem(1)
+    } else {
       currentSystem.value = 1
-      if (currentGalaxy.value < 9) currentGalaxy.value++
-      else currentGalaxy.value = 1
+      if (currentGalaxy.value < 9) {
+        changeGalaxy(1)
+      } else {
+        currentGalaxy.value = 1
+      }
+      fetchSystem()
     }
   }
 }
 
 const goToSystem = () => {
-  // In real app, this would fetch new system data
-  console.log(`Navigating to [${currentGalaxy.value}:${currentSystem.value}:*]`)
+  fetchSystem(currentGalaxy.value, currentSystem.value)
+}
+
+// Check if planet is owned by current player
+const isOwnPlanet = (slot: any) => {
+  return slot.owner?.id === player.value?.id || slot.owner?.username === player.value?.username
 }
 </script>
 
@@ -63,7 +64,7 @@ const goToSystem = () => {
           class="btn-ghost"
           @click="navigateSystem('prev')"
         >
-          <Icon name="mdi:chevron-left" />
+          <IconsMuiTen class="w-5 h-5 rotate-180" />
         </button>
         
         <div class="flex items-center gap-2 glass-card px-4 py-2">
@@ -91,18 +92,23 @@ const goToSystem = () => {
           class="btn-ghost"
           @click="navigateSystem('next')"
         >
-          <Icon name="mdi:chevron-right" />
+          <IconsMuiTen class="w-5 h-5" />
         </button>
         
-        <button class="btn-primary" @click="goToSystem">
-          <Icon name="mdi:magnify" />
+        <button class="btn-primary flex items-center gap-2" @click="goToSystem">
+          <IconsThienHa class="w-4 h-4" />
           Đi đến
         </button>
       </div>
     </div>
 
+    <!-- Loading -->
+    <div v-if="isLoading" class="flex items-center justify-center py-12">
+      <div class="animate-spin w-8 h-8 border-2 border-primary-500 border-t-transparent rounded-full"></div>
+    </div>
+
     <!-- Galaxy View -->
-    <div class="glass-card overflow-hidden">
+    <div v-if="!isLoading && systemView.length > 0" class="glass-card overflow-hidden">
       <!-- Table Header -->
       <div class="grid grid-cols-12 gap-2 p-4 bg-space-800/50 border-b border-space-700 text-sm font-medium text-slate-400">
         <div class="col-span-1 text-center">Vị trí</div>
@@ -116,13 +122,13 @@ const goToSystem = () => {
       <!-- Planet Rows -->
       <div class="divide-y divide-space-700">
         <div
-          v-for="slot in systemPlanets"
+          v-for="slot in systemView"
           :key="slot.position"
           class="grid grid-cols-12 gap-2 p-4 items-center transition-colors"
           :class="{
             'bg-space-800/30': slot.planet,
             'hover:bg-space-700/30': slot.planet,
-            'bg-primary-500/10': slot.planet?.isOwn,
+            'bg-primary-500/10': isOwnPlanet(slot),
           }"
         >
           <!-- Position -->
@@ -138,13 +144,13 @@ const goToSystem = () => {
               <div class="flex items-center gap-3">
                 <div
                   class="w-10 h-10 rounded-full flex items-center justify-center"
-                  :class="slot.planet.isOwn ? 'bg-primary-500/30' : 'bg-slate-700'"
+                  :class="isOwnPlanet(slot) ? 'bg-primary-500/30' : 'bg-slate-700'"
                 >
-                  <Icon name="mdi:earth" class="text-xl" :class="slot.planet.isOwn ? 'text-primary-400' : 'text-slate-400'" />
+                  <IconsHanhTinh class="w-6 h-6" :class="isOwnPlanet(slot) ? 'text-primary-400' : 'text-slate-400'" />
                 </div>
                 <div>
                   <p class="font-medium text-slate-200">{{ slot.planet.name }}</p>
-                  <p v-if="slot.planet.isOwn" class="text-xs text-primary-400">Hành tinh của bạn</p>
+                  <p v-if="isOwnPlanet(slot)" class="text-xs text-primary-400">Hành tinh của bạn</p>
                 </div>
               </div>
             </template>
@@ -155,52 +161,50 @@ const goToSystem = () => {
 
           <!-- Owner -->
           <div class="col-span-2">
-            <template v-if="slot.planet">
+            <template v-if="slot.planet && slot.owner">
               <span
                 class="font-medium"
-                :class="slot.planet.isOwn ? 'text-primary-400' : 'text-slate-300'"
+                :class="isOwnPlanet(slot) ? 'text-primary-400' : 'text-slate-300'"
               >
-                {{ slot.planet.owner }}
+                {{ slot.owner.username }}
               </span>
             </template>
           </div>
 
           <!-- Level -->
           <div class="col-span-1 text-center">
-            <template v-if="slot.planet">
-              <span class="font-mono text-slate-300">{{ slot.planet.level }}</span>
+            <template v-if="slot.owner">
+              <span class="font-mono text-slate-300">{{ slot.owner.level || '?' }}</span>
             </template>
           </div>
 
           <!-- Alliance -->
           <div class="col-span-2">
-            <template v-if="slot.planet?.alliance">
-              <span class="badge badge-info">{{ slot.planet.alliance }}</span>
-            </template>
+            <!-- Alliance info not in current API - placeholder -->
           </div>
 
           <!-- Actions -->
           <div class="col-span-3">
-            <template v-if="slot.planet && !slot.planet.isOwn">
+            <template v-if="slot.planet && !isOwnPlanet(slot)">
               <div class="flex items-center justify-center gap-2">
-                <button class="btn-ghost text-xs px-3 py-1">
-                  <Icon name="mdi:eye" />
+                <button class="btn-ghost text-xs px-3 py-1 flex items-center gap-1">
+                  <IconsTauDoTham class="w-4 h-4" />
                   Do thám
                 </button>
-                <button class="btn-ghost text-xs px-3 py-1 text-red-400 hover:bg-red-500/10">
-                  <Icon name="mdi:sword" />
+                <button class="btn-ghost text-xs px-3 py-1 text-red-400 hover:bg-red-500/10 flex items-center gap-1">
+                  <IconsTanCong class="w-4 h-4" />
                   Tấn công
                 </button>
-                <button class="btn-ghost text-xs px-3 py-1">
-                  <Icon name="mdi:truck" />
+                <button class="btn-ghost text-xs px-3 py-1 flex items-center gap-1">
+                  <IconsHamDoi class="w-4 h-4" />
                   Vận chuyển
                 </button>
               </div>
             </template>
             <template v-else-if="!slot.planet">
               <div class="flex items-center justify-center">
-                <button class="btn-ghost text-xs px-3 py-1 text-green-400 hover:bg-green-500/10">
-                  <Icon name="mdi:earth-plus" />
+                <button class="btn-ghost text-xs px-3 py-1 text-green-400 hover:bg-green-500/10 flex items-center gap-1">
+                  <IconsHanhTinh class="w-4 h-4" />
                   Thuộc địa hóa
                 </button>
               </div>
@@ -221,7 +225,7 @@ const goToSystem = () => {
         <span>Hành tinh của người chơi khác</span>
       </div>
       <div class="flex items-center gap-2">
-        <Icon name="mdi:earth-plus" class="text-green-400" />
+        <IconsHanhTinh class="w-4 h-4 text-green-400" />
         <span>Có thể thuộc địa hóa</span>
       </div>
     </div>

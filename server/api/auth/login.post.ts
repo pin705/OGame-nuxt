@@ -1,4 +1,4 @@
-
+import { comparePassword, generateToken, setAuthCookie } from '~~/server/utils/auth'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
@@ -23,8 +23,9 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // Verify password (in production, use bcrypt.compare)
-    if (player.passwordHash !== password) {
+    // Verify password
+    const isValidPassword = await comparePassword(password, player.passwordHash)
+    if (!isValidPassword) {
       throw createError({
         statusCode: 401,
         message: 'Invalid email or password',
@@ -36,8 +37,14 @@ export default defineEventHandler(async (event) => {
     player.isOnline = true
     await player.save()
 
-    // Generate token (in production, use JWT)
-    const token = Buffer.from(`${player._id}:${Date.now()}`).toString('base64')
+    // Generate JWT token
+    const token = generateToken({
+      playerId: player._id.toString(),
+      username: player.username,
+    })
+
+    // Set auth cookie
+    setAuthCookie(event, token)
 
     return {
       success: true,

@@ -7,48 +7,51 @@ definePageMeta({
   layout: 'game',
 })
 
-// Mock data
-const researches = ref([
-  { type: ResearchType.CONG_NGHE_NANG_LUONG, level: 5, isResearching: false },
-  { type: ResearchType.CONG_NGHE_KHAI_THAC, level: 3, isResearching: true, endTime: new Date(Date.now() + 7200000) },
-  { type: ResearchType.CONG_NGHE_VU_KHI, level: 4, isResearching: false },
-  { type: ResearchType.CONG_NGHE_GIAP, level: 3, isResearching: false },
-  { type: ResearchType.CONG_NGHE_KHIEN, level: 2, isResearching: false },
-  { type: ResearchType.DONG_CO_DOT_CHAY, level: 6, isResearching: false },
-  { type: ResearchType.DONG_CO_XUNG, level: 4, isResearching: false },
-  { type: ResearchType.DONG_CO_SIEU_KHONG_GIAN, level: 0, isResearching: false },
-  { type: ResearchType.CONG_NGHE_GIAN_DIEP, level: 3, isResearching: false },
-  { type: ResearchType.CONG_NGHE_MAY_TINH, level: 5, isResearching: false },
-  { type: ResearchType.CONG_NGHE_SIEU_KHONG_GIAN, level: 0, isResearching: false },
-])
+const { currentPlanet, buildQueue, isLoading, startResearch } = useGame()
 
-const resources = ref({
-  tinhThach: 1250000,
-  nangLuongVuTru: 680000,
-  honThach: 320000,
+// Get research data from current planet
+const researches = computed(() => {
+  if (!currentPlanet.value?.research) return []
+  const research = currentPlanet.value.research
+  return Object.entries(research).map(([type, level]) => ({
+    type: type as ResearchType,
+    level: level as number,
+    isResearching: false,
+    buildCount: 0,
+  }))
 })
 
-const labLevel = 7
+// Get resources from planet
+const resources = computed(() => currentPlanet.value?.resources || {
+  tinhThach: 0,
+  nangLuongVuTru: 0,
+  honThach: 0,
+  dienNang: 0,
+})
+
+// Get lab level
+const labLevel = computed(() => currentPlanet.value?.buildings?.vienNghienCuu || 1)
+
+// Check build queue for active research
+const researchQueue = computed(() => {
+  return buildQueue.value.find((q: any) => q.type === 'RESEARCH' && !q.isComplete)
+})
 
 const categories = [
   {
     name: 'Năng Lượng & Khai Thác',
-    icon: 'mdi:lightning-bolt',
     types: [ResearchType.CONG_NGHE_NANG_LUONG, ResearchType.CONG_NGHE_KHAI_THAC],
   },
   {
     name: 'Chiến Đấu',
-    icon: 'mdi:sword',
     types: [ResearchType.CONG_NGHE_VU_KHI, ResearchType.CONG_NGHE_GIAP, ResearchType.CONG_NGHE_KHIEN],
   },
   {
     name: 'Động Cơ',
-    icon: 'mdi:rocket',
     types: [ResearchType.DONG_CO_DOT_CHAY, ResearchType.DONG_CO_XUNG, ResearchType.DONG_CO_SIEU_KHONG_GIAN],
   },
   {
     name: 'Nâng Cao',
-    icon: 'mdi:chip',
     types: [ResearchType.CONG_NGHE_GIAN_DIEP, ResearchType.CONG_NGHE_MAY_TINH, ResearchType.CONG_NGHE_SIEU_KHONG_GIAN],
   },
 ]
@@ -61,7 +64,7 @@ const filteredResearches = computed(() => {
   return researches.value.filter(r => category.types.includes(r.type))
 })
 
-const isAnyResearching = computed(() => researches.value.some(r => r.isResearching))
+const isAnyResearching = computed(() => !!researchQueue.value)
 
 const canAffordResearch = (type: ResearchType, currentLevel: number) => {
   const cost = calculateResearchCost(type, currentLevel + 1)
@@ -72,21 +75,20 @@ const canAffordResearch = (type: ResearchType, currentLevel: number) => {
   )
 }
 
-const getIconForResearch = (type: ResearchType) => {
-  const iconMap: Record<string, string> = {
-    [ResearchType.CONG_NGHE_NANG_LUONG]: 'mdi:lightning-bolt',
-    [ResearchType.CONG_NGHE_KHAI_THAC]: 'mdi:pickaxe',
-    [ResearchType.CONG_NGHE_VU_KHI]: 'mdi:sword',
-    [ResearchType.CONG_NGHE_GIAP]: 'mdi:shield',
-    [ResearchType.CONG_NGHE_KHIEN]: 'mdi:shield-star',
-    [ResearchType.DONG_CO_DOT_CHAY]: 'mdi:fire',
-    [ResearchType.DONG_CO_XUNG]: 'mdi:flash',
-    [ResearchType.DONG_CO_SIEU_KHONG_GIAN]: 'mdi:space-station',
-    [ResearchType.CONG_NGHE_GIAN_DIEP]: 'mdi:eye',
-    [ResearchType.CONG_NGHE_MAY_TINH]: 'mdi:desktop-tower',
-    [ResearchType.CONG_NGHE_SIEU_KHONG_GIAN]: 'mdi:atom',
+const researchError = ref<string | null>(null)
+
+const handleResearch = async (type: ResearchType, currentLevel: number) => {
+  if (isAnyResearching.value || !canAffordResearch(type, currentLevel)) return
+  
+  researchError.value = null
+  const result = await startResearch(type)
+  
+  if (!result.success) {
+    researchError.value = result.error || 'Nghiên cứu thất bại'
+    setTimeout(() => {
+      researchError.value = null
+    }, 3000)
   }
-  return iconMap[type] || 'mdi:flask'
 }
 </script>
 
@@ -99,14 +101,27 @@ const getIconForResearch = (type: ResearchType) => {
     </div>
 
     <!-- Lab Info -->
-    <div class="glass-card p-4 flex items-center gap-4">
+    <div v-if="currentPlanet" class="glass-card p-4 flex items-center gap-4">
       <div class="w-12 h-12 rounded-lg bg-blue-500/20 flex items-center justify-center">
-        <Icon name="mdi:flask" class="text-2xl text-blue-400" />
+        <IconsNghienCuu class="w-8 h-8 text-blue-400" />
       </div>
       <div>
         <p class="font-medium text-slate-200">Viện Nghiên Cứu</p>
         <p class="text-sm text-slate-400">Cấp {{ labLevel }} - Nghiên cứu nhanh hơn {{ labLevel * 10 }}%</p>
       </div>
+    </div>
+
+    <!-- Error Message -->
+    <div v-if="researchError" class="glass-card p-4 border-l-4 border-red-500">
+      <div class="flex items-center gap-3">
+        <IconsCanhBao class="w-6 h-6 text-red-400" />
+        <p class="text-red-400">{{ researchError }}</p>
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div v-if="isLoading && !currentPlanet" class="flex items-center justify-center py-12">
+      <div class="animate-spin w-8 h-8 border-2 border-primary-500 border-t-transparent rounded-full"></div>
     </div>
 
     <!-- Category Tabs -->
@@ -122,7 +137,7 @@ const getIconForResearch = (type: ResearchType) => {
         "
         @click="activeCategory = category.name"
       >
-        <Icon :name="category.icon" />
+        <IconsNghienCuu class="w-5 h-5" />
         {{ category.name }}
       </button>
     </div>
@@ -130,10 +145,14 @@ const getIconForResearch = (type: ResearchType) => {
     <!-- Warning if researching -->
     <div v-if="isAnyResearching" class="glass-card p-4 border-l-4 border-blue-500">
       <div class="flex items-center gap-3">
-        <Icon name="mdi:flask" class="text-2xl text-blue-400 animate-pulse" />
-        <div>
-          <p class="font-medium text-slate-200">Đang nghiên cứu</p>
-          <p class="text-sm text-slate-400">Bạn chỉ có thể nghiên cứu 1 công nghệ cùng lúc.</p>
+        <IconsNghienCuu class="w-6 h-6 text-blue-400 animate-pulse" />
+        <div class="flex-1">
+          <p class="font-medium text-slate-200">
+            Đang nghiên cứu {{ RESEARCHES[researchQueue?.researchType as ResearchType]?.name || 'Công nghệ' }}
+          </p>
+          <p class="text-sm text-slate-400">
+            Còn {{ Math.floor((researchQueue?.remainingSeconds || 0) / 60) }}m {{ (researchQueue?.remainingSeconds || 0) % 60 }}s
+          </p>
         </div>
       </div>
     </div>
@@ -144,39 +163,39 @@ const getIconForResearch = (type: ResearchType) => {
         v-for="research in filteredResearches"
         :key="research.type"
         class="glass-card-hover p-4"
-        :class="{ 'ring-2 ring-blue-500 animate-pulse': research.isResearching }"
+        :class="{ 'ring-2 ring-blue-500 animate-pulse': researchQueue?.researchType === research.type }"
       >
         <div class="flex items-start gap-4">
           <div class="w-12 h-12 rounded-lg bg-blue-900/30 flex items-center justify-center flex-shrink-0">
-            <Icon :name="getIconForResearch(research.type)" class="text-2xl text-blue-400" />
+            <IconsNghienCuu class="w-8 h-8 text-blue-400" />
           </div>
           
           <div class="flex-1">
             <div class="flex items-center gap-2 mb-1">
               <h3 class="font-display font-semibold text-slate-100">
-                {{ RESEARCHES[research.type].name }}
+                {{ RESEARCHES[research.type]?.name || research.type }}
               </h3>
               <span class="font-mono text-sm text-blue-400">Cấp {{ research.level }}</span>
             </div>
             
             <p class="text-xs text-slate-500 mb-3">
-              {{ RESEARCHES[research.type].description }}
+              {{ RESEARCHES[research.type]?.description || '' }}
             </p>
 
             <!-- Cost -->
-            <div v-if="!research.isResearching" class="mb-3">
+            <div v-if="researchQueue?.researchType !== research.type" class="mb-3">
               <p class="text-xs text-slate-500 mb-1">Chi phí cấp {{ research.level + 1 }}:</p>
               <div class="flex flex-wrap gap-2 text-xs">
-                <span class="resource-metal">
-                  <Icon name="mdi:gold" class="text-sm" />
+                <span class="resource-metal flex items-center gap-1">
+                  <IconsTinhThach class="w-4 h-4" />
                   {{ formatNumber(calculateResearchCost(research.type, research.level + 1).tinhThach) }}
                 </span>
-                <span class="resource-crystal">
-                  <Icon name="mdi:diamond-stone" class="text-sm" />
+                <span class="resource-crystal flex items-center gap-1">
+                  <IconsNangLuong class="w-4 h-4" />
                   {{ formatNumber(calculateResearchCost(research.type, research.level + 1).nangLuongVuTru) }}
                 </span>
-                <span v-if="calculateResearchCost(research.type, research.level + 1).honThach > 0" class="resource-deuterium">
-                  <Icon name="mdi:water" class="text-sm" />
+                <span v-if="calculateResearchCost(research.type, research.level + 1).honThach > 0" class="resource-deuterium flex items-center gap-1">
+                  <IconsHonThach class="w-4 h-4" />
                   {{ formatNumber(calculateResearchCost(research.type, research.level + 1).honThach) }}
                 </span>
               </div>
@@ -186,7 +205,9 @@ const getIconForResearch = (type: ResearchType) => {
             <div v-else class="mb-3">
               <div class="flex items-center justify-between text-xs mb-1">
                 <span class="text-blue-400">Đang nghiên cứu...</span>
-                <span class="font-mono text-slate-300">{{ formatDuration(7200) }}</span>
+                <span class="font-mono text-slate-300">
+                  {{ Math.floor((researchQueue?.remainingSeconds || 0) / 60) }}:{{ String((researchQueue?.remainingSeconds || 0) % 60).padStart(2, '0') }}
+                </span>
               </div>
               <div class="progress-bar">
                 <div class="progress-bar-fill bg-gradient-to-r from-blue-500 to-blue-400" style="width: 40%;" />
@@ -195,20 +216,21 @@ const getIconForResearch = (type: ResearchType) => {
 
             <!-- Button -->
             <button
-              v-if="!research.isResearching"
+              v-if="researchQueue?.researchType !== research.type"
               :disabled="!canAffordResearch(research.type, research.level) || isAnyResearching"
-              class="btn-primary text-sm w-full"
+              class="btn-primary text-sm w-full flex items-center justify-center gap-2"
               :class="{ 'opacity-50 cursor-not-allowed': !canAffordResearch(research.type, research.level) || isAnyResearching }"
+              @click="handleResearch(research.type, research.level)"
             >
-              <Icon name="mdi:flask" />
+              <IconsNghienCuu class="w-4 h-4" />
               Nghiên cứu cấp {{ research.level + 1 }}
             </button>
             <button
               v-else
               disabled
-              class="btn-outline text-sm w-full opacity-50 cursor-not-allowed"
+              class="btn-outline text-sm w-full opacity-50 cursor-not-allowed flex items-center justify-center gap-2"
             >
-              <Icon name="mdi:timer-sand" />
+              <IconsThoiGian class="w-4 h-4" />
               Đang nghiên cứu...
             </button>
           </div>
