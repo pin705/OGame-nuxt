@@ -84,6 +84,20 @@ export enum FleetMission {
   TAI_CHE = 'TAI_CHE',                                 // Recycle
 }
 
+export enum DefenseType {
+  // Light Defense
+  BE_PHONG_TEN_LUA = 'BE_PHONG_TEN_LUA',               // Rocket Launcher
+  PHAO_LASER_NHO = 'PHAO_LASER_NHO',                   // Light Laser
+  PHAO_LASER_LON = 'PHAO_LASER_LON',                   // Heavy Laser
+  PHAO_GAUSS = 'PHAO_GAUSS',                           // Gauss Cannon
+  PHAO_ION = 'PHAO_ION',                               // Ion Cannon
+  PHAO_PLASMA = 'PHAO_PLASMA',                         // Plasma Turret
+  
+  // Shields
+  VOM_KHIEN_NHO = 'VOM_KHIEN_NHO',                     // Small Shield Dome
+  VOM_KHIEN_LON = 'VOM_KHIEN_LON',                     // Large Shield Dome
+}
+
 // ============ Interfaces ============
 
 export interface Coordinates {
@@ -167,6 +181,26 @@ export interface ShipConfig {
     cargo: number;
     speed: number;
     fuelConsumption: number;
+  };
+  requirements?: {
+    buildings?: { type: BuildingType; level: number }[];
+    researches?: { type: ResearchType; level: number }[];
+  };
+}
+
+export interface DefenseConfig {
+  type: DefenseType;
+  name: string;
+  description: string;
+  cost: {
+    tinhThach: number;
+    nangLuongVuTru: number;
+    honThach: number;
+  };
+  stats: {
+    attack: number;
+    defense: number;
+    shield: number;
   };
   requirements?: {
     buildings?: { type: BuildingType; level: number }[];

@@ -6,9 +6,11 @@ import {
   BuildingType,
   ResearchType,
   ShipType,
+  DefenseType,
   type BuildingConfig,
   type ResearchConfig,
   type ShipConfig,
+  type DefenseConfig,
 } from '~/types/game'
 
 // ============ Building Configurations ============
@@ -412,6 +414,108 @@ export const SHIPS: Record<ShipType, ShipConfig> = {
         { type: ResearchType.DONG_CO_SIEU_KHONG_GIAN, level: 7 },
         { type: ResearchType.CONG_NGHE_SIEU_KHONG_GIAN, level: 6 },
       ],
+    },
+  },
+}
+
+// ============ Defense Configurations ============
+
+export const DEFENSES: Record<DefenseType, DefenseConfig> = {
+  [DefenseType.BE_PHONG_TEN_LUA]: {
+    type: DefenseType.BE_PHONG_TEN_LUA,
+    name: 'Bệ Phóng Tên Lửa',
+    description: 'Hệ thống phòng thủ cơ bản, rẻ tiền nhưng hiệu quả chống lại số lượng lớn.',
+    cost: { tinhThach: 2000, nangLuongVuTru: 0, honThach: 0 },
+    stats: { attack: 80, defense: 20, shield: 20 },
+    requirements: {
+      buildings: [{ type: BuildingType.XUONG_DONG_TAU, level: 1 }],
+    },
+  },
+  [DefenseType.PHAO_LASER_NHO]: {
+    type: DefenseType.PHAO_LASER_NHO,
+    name: 'Pháo Laser Nhỏ',
+    description: 'Vũ khí năng lượng đơn giản, gây sát thương ổn định.',
+    cost: { tinhThach: 1500, nangLuongVuTru: 500, honThach: 0 },
+    stats: { attack: 100, defense: 25, shield: 25 },
+    requirements: {
+      buildings: [{ type: BuildingType.XUONG_DONG_TAU, level: 2 }],
+      researches: [{ type: ResearchType.CONG_NGHE_NANG_LUONG, level: 1 }],
+    },
+  },
+  [DefenseType.PHAO_LASER_LON]: {
+    type: DefenseType.PHAO_LASER_LON,
+    name: 'Pháo Laser Lớn',
+    description: 'Phiên bản nâng cấp của pháo laser, sức công phá mạnh hơn.',
+    cost: { tinhThach: 6000, nangLuongVuTru: 2000, honThach: 0 },
+    stats: { attack: 250, defense: 100, shield: 100 },
+    requirements: {
+      buildings: [{ type: BuildingType.XUONG_DONG_TAU, level: 4 }],
+      researches: [
+        { type: ResearchType.CONG_NGHE_NANG_LUONG, level: 3 },
+        { type: ResearchType.CONG_NGHE_VU_KHI, level: 1 }, // Added requirement
+      ],
+    },
+  },
+  [DefenseType.PHAO_GAUSS]: {
+    type: DefenseType.PHAO_GAUSS,
+    name: 'Pháo Gauss',
+    description: 'Sử dụng từ trường để bắn đạn với vận tốc cực lớn.',
+    cost: { tinhThach: 20000, nangLuongVuTru: 15000, honThach: 2000 },
+    stats: { attack: 1100, defense: 200, shield: 200 },
+    requirements: {
+      buildings: [{ type: BuildingType.XUONG_DONG_TAU, level: 6 }],
+      researches: [
+        { type: ResearchType.CONG_NGHE_NANG_LUONG, level: 6 },
+        { type: ResearchType.CONG_NGHE_VU_KHI, level: 3 },
+        { type: ResearchType.CONG_NGHE_KHIEN, level: 1 },
+      ],
+    },
+  },
+  [DefenseType.PHAO_ION]: {
+    type: DefenseType.PHAO_ION,
+    name: 'Pháo Ion',
+    description: 'Bắn chùm ion phá hủy lá chắn của đối phương.',
+    cost: { tinhThach: 2000, nangLuongVuTru: 6000, honThach: 0 },
+    stats: { attack: 150, defense: 500, shield: 500 },
+    requirements: {
+      buildings: [{ type: BuildingType.XUONG_DONG_TAU, level: 4 }],
+      researches: [{ type: ResearchType.CONG_NGHE_KHIEN, level: 4 }], // Changed requirement
+    },
+  },
+  [DefenseType.PHAO_PLASMA]: {
+    type: DefenseType.PHAO_PLASMA,
+    name: 'Pháo Plasma',
+    description: 'Vũ khí phòng thủ mạnh nhất, sử dụng plasma nhiệt độ cao.',
+    cost: { tinhThach: 50000, nangLuongVuTru: 50000, honThach: 30000 },
+    stats: { attack: 3000, defense: 300, shield: 300 },
+    requirements: {
+      buildings: [{ type: BuildingType.XUONG_DONG_TAU, level: 8 }],
+      researches: [
+        { type: ResearchType.CONG_NGHE_NANG_LUONG, level: 8 },
+        { type: ResearchType.CONG_NGHE_VU_KHI, level: 10 }, // Changed requirement
+      ],
+    },
+  },
+  [DefenseType.VOM_KHIEN_NHO]: {
+    type: DefenseType.VOM_KHIEN_NHO,
+    name: 'Vòm Khiên Nhỏ',
+    description: 'Lá chắn năng lượng bao phủ hành tinh, chặn sát thương.',
+    cost: { tinhThach: 10000, nangLuongVuTru: 10000, honThach: 0 },
+    stats: { attack: 1, defense: 2000, shield: 2000 },
+    requirements: {
+      buildings: [{ type: BuildingType.XUONG_DONG_TAU, level: 1 }],
+      researches: [{ type: ResearchType.CONG_NGHE_KHIEN, level: 2 }],
+    },
+  },
+  [DefenseType.VOM_KHIEN_LON]: {
+    type: DefenseType.VOM_KHIEN_LON,
+    name: 'Vòm Khiên Lớn',
+    description: 'Lá chắn năng lượng cực mạnh, bảo vệ toàn diện.',
+    cost: { tinhThach: 50000, nangLuongVuTru: 50000, honThach: 0 },
+    stats: { attack: 1, defense: 10000, shield: 10000 },
+    requirements: {
+      buildings: [{ type: BuildingType.XUONG_DONG_TAU, level: 6 }],
+      researches: [{ type: ResearchType.CONG_NGHE_KHIEN, level: 6 }],
     },
   },
 }

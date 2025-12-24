@@ -1,6 +1,6 @@
 import { requireAuth } from '~~/server/utils/auth'
-import { BattleReportSchema } from '~/server/models/battle-report.schema'
-import { EspionageReportSchema } from '~/server/models/espionage-report.schema'
+import { BattleReportSchema } from '~~/server/models/battle-report.schema'
+import { EspionageReportSchema } from '~~/server/models/espionage-report.schema'
 
 // Get reports for the player
 export default defineEventHandler(async (event) => {
