@@ -1,4 +1,5 @@
 import { requireAuth } from '~~/server/utils/auth'
+import { notifyAttackIncoming, notifyFleetUpdate } from '~~/server/routes/_ws'
 
 // Fleet mission types
 const FleetMission = {
@@ -147,6 +148,13 @@ export default defineEventHandler(async (event) => {
     const origin = originPlanet.coordinates
     const distance = calculateDistance(origin, destination)
     
+    // Get target planet (for notifications)
+    const targetPlanet = await PlanetSchema.findOne({
+      'coordinates.galaxy': destination.galaxy,
+      'coordinates.system': destination.system,
+      'coordinates.position': destination.position,
+    })
+    
     // Get slowest ship speed
     let slowestSpeed = Infinity
     for (const ship of ships) {
@@ -215,6 +223,34 @@ export default defineEventHandler(async (event) => {
       returnTime: mission !== 'TRIEN_KHAI' ? returnTime : undefined,
       status: 'DEPARTING',
       isReturning: false,
+    })
+
+    // Notify target player if this is an attack
+    if (mission === FleetMission.TAN_CONG && targetPlanet?.owner) {
+      const targetOwnerId = targetPlanet.owner.toString()
+      if (targetOwnerId !== auth.playerId) {
+        notifyAttackIncoming(targetOwnerId, {
+          arrivalTime,
+          origin: {
+            coordinates: origin,
+          },
+          destination: {
+            planetName: targetPlanet.name,
+            coordinates: destination,
+          },
+          // Don't reveal exact fleet composition
+          fleetSize: ships.reduce((sum: number, s: any) => sum + s.count, 0),
+        })
+      }
+    }
+
+    // Notify the sender about fleet dispatch
+    notifyFleetUpdate(auth.playerId, {
+      type: 'dispatched',
+      fleetId: fleet._id,
+      mission,
+      destination,
+      arrivalTime,
     })
 
     return {

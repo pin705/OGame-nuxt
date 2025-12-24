@@ -1,6 +1,8 @@
 // Server route that processes completed build queues
 // This can be called by a cron job or periodically by clients
 
+import { notifyBuildingComplete, notifyResearchComplete, notifyShipComplete, notifyFleetUpdate } from '~~/server/routes/_ws'
+
 export default defineEventHandler(async (event) => {
   const now = new Date()
 
@@ -111,6 +113,14 @@ async function completeBuildingUpgrade(build: any) {
   await planet.save()
   build.status = 'COMPLETED'
   await build.save()
+
+  // Send WebSocket notification
+  notifyBuildingComplete(planet.owner.toString(), {
+    buildingType: build.itemType,
+    level: build.targetLevel,
+    planetId: planet._id,
+    planetName: planet.name,
+  })
 }
 
 async function completeResearch(build: any) {
@@ -135,6 +145,12 @@ async function completeResearch(build: any) {
   await player.save()
   build.status = 'COMPLETED'
   await build.save()
+
+  // Send WebSocket notification
+  notifyResearchComplete(player._id.toString(), {
+    researchType: build.itemType,
+    level: build.targetLevel,
+  })
 }
 
 async function completeShipBuild(build: any) {
@@ -159,6 +175,14 @@ async function completeShipBuild(build: any) {
   await planet.save()
   build.status = 'COMPLETED'
   await build.save()
+
+  // Send WebSocket notification
+  notifyShipComplete(planet.owner.toString(), {
+    shipType: build.itemType,
+    count: build.count || 1,
+    planetId: planet._id,
+    planetName: planet.name,
+  })
 }
 
 async function completeDefenseBuild(build: any) {
@@ -209,6 +233,16 @@ async function processFleetReturn(fleet: any) {
     originPlanet.resources.honThach += fleet.resources.honThach || 0
 
     await originPlanet.save()
+
+    // Send WebSocket notification
+    notifyFleetUpdate(fleet.owner.toString(), {
+      type: 'returned',
+      fleetId: fleet._id,
+      mission: fleet.mission,
+      origin: fleet.origin,
+      destination: fleet.destination,
+      resources: fleet.resources,
+    })
   }
 
   fleet.status = 'COMPLETED'

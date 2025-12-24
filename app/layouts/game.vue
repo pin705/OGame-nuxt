@@ -56,7 +56,48 @@ onMounted(async () => {
   // Start countdown ticker
   countdown.startTicker()
   countdown.registerFromQueue(game.buildQueue.value)
+  
+  // Connect to WebSocket for real-time updates
+  connectWebSocket()
 })
+
+// WebSocket connection
+const websocket = useWebSocket()
+
+const connectWebSocket = () => {
+  const playerId = auth.player.value?._id
+  if (playerId) {
+    websocket.connect(playerId)
+    
+    // Listen for game events
+    websocket.on('resource_update', (event) => {
+      if (game.currentPlanet.value?.planet) {
+        game.currentPlanet.value.planet.resources = event.data
+      }
+    })
+    
+    websocket.on('building_complete', async () => {
+      await game.processQueue()
+    })
+    
+    websocket.on('research_complete', async () => {
+      await game.processQueue()
+    })
+    
+    websocket.on('ship_complete', async () => {
+      await game.processQueue()
+    })
+    
+    websocket.on('fleet_update', async () => {
+      await game.fetchPlanet()
+    })
+    
+    websocket.on('attack_incoming', (event) => {
+      // Show attack warning notification
+      console.warn('[ATTACK INCOMING]', event.data)
+    })
+  }
+}
 
 // Watch buildQueue changes to update countdowns
 watch(() => game.buildQueue.value, (newQueue) => {
@@ -65,6 +106,7 @@ watch(() => game.buildQueue.value, (newQueue) => {
 
 onUnmounted(() => {
   countdown.stopTicker()
+  websocket.disconnect()
 })
 
 // Resources from current planet
