@@ -1,49 +1,50 @@
 import { defineMongooseModel } from '#nuxt/mongoose'
+import { Schema } from 'mongoose'
 
 export const EspionageReportSchema = defineMongooseModel({
   name: 'EspionageReport',
   schema: {
     attacker: {
-      type: 'ObjectId',
+      type: Schema.Types.ObjectId,
       ref: 'Player',
       required: true,
     },
     defender: {
-      type: 'ObjectId',
+      type: Schema.Types.ObjectId,
       ref: 'Player',
       required: true,
     },
     coordinates: {
-      galaxy: { type: 'number', required: true },
-      system: { type: 'number', required: true },
-      position: { type: 'number', required: true },
+      galaxy: { type: Number, required: true },
+      system: { type: Number, required: true },
+      position: { type: Number, required: true },
     },
     resources: {
-      tinhThach: { type: 'number' },
-      nangLuongVuTru: { type: 'number' },
-      honThach: { type: 'number' },
-      dienNang: { type: 'number' },
+      tinhThach: { type: Number },
+      nangLuongVuTru: { type: Number },
+      honThach: { type: Number },
+      dienNang: { type: Number },
     },
     ships: [{
-      type: { type: 'string' },
-      count: { type: 'number' },
+      type: { type: String },
+      count: { type: Number },
     }],
     defenses: [{
-      type: { type: 'string' },
-      count: { type: 'number' },
+      type: { type: String },
+      count: { type: Number },
     }],
     buildings: [{
-      type: { type: 'string' },
-      level: { type: 'number' },
+      type: { type: String },
+      level: { type: Number },
     }],
     researches: [{
-      type: { type: 'string' },
-      level: { type: 'number' },
+      type: { type: String },
+      level: { type: Number },
     }],
-    levelDifference: { type: 'number', required: true },
-    counterEspionageChance: { type: 'number', default: 0 },
+    levelDifference: { type: Number, required: true },
+    counterEspionageChance: { type: Number, default: 0 },
     createdAt: {
-      type: 'Date',
+      type: Date,
       default: Date.now,
       expires: 60 * 60 * 24 * 7, // Expires in 7 days
     },

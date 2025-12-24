@@ -23,10 +23,11 @@ const navigation = [
   { name: 'Phòng thủ', shortName: 'Phòng thủ', href: '/game/defenses', iconType: 'defense' },
   { name: 'Hạm đội', shortName: 'Hạm đội', href: '/game/fleet', iconType: 'fleet' },
   { name: 'Thiên hà', shortName: 'Thiên hà', href: '/game/galaxy', iconType: 'galaxy' },
+  { name: 'Thám hiểm', shortName: 'Thám hiểm', href: '/game/expedition', iconType: 'galaxy' },
   { name: 'Bảng xếp hạng', shortName: 'Xếp hạng', href: '/game/highscore', iconType: 'highscore' },
   { name: 'Liên minh', shortName: 'Liên minh', href: '/game/alliance', iconType: 'alliance' },
+  { name: 'Chiến hữu', shortName: 'Bạn bè', href: '/game/buddies', iconType: 'player' },
   { name: 'Tin nhắn', shortName: 'Tin nhắn', href: '/game/messages', iconType: 'message' },
-  { name: 'Báo cáo', shortName: 'Báo cáo', href: '/game/reports', iconType: 'menu' },
 ]
 
 // Mobile bottom nav (key items only)
@@ -47,8 +48,8 @@ const isActiveRoute = (href: string) => route.path === href
 // Fetch unread messages
 const fetchUnreadMessages = async () => {
   try {
-    const { count } = await $fetch('/api/game/messages/count')
-    unreadMessages.value = count
+    const result = await $fetch('/api/game/messages/count') as { count: number }
+    unreadMessages.value = result.count
   } catch (e) {
     console.error('Failed to fetch unread messages')
   }

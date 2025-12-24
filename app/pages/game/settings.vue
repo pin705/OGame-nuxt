@@ -50,10 +50,16 @@ const showMessage = (msg: string, type: 'success' | 'error' = 'success') => {
 const saveProfile = async () => {
   isSaving.value = true
   try {
-    // TODO: Implement profile update API
-    showMessage('Cập nhật thông tin thành công!', 'success')
-  } catch {
-    showMessage('Có lỗi xảy ra, vui lòng thử lại.', 'error')
+    const result = await $fetch('/api/player/update-profile', {
+      method: 'POST',
+      body: { email: profileForm.email },
+    }) as { success: boolean; message?: string }
+    
+    if (result.success) {
+      showMessage('Cập nhật thông tin thành công!', 'success')
+    }
+  } catch (error: any) {
+    showMessage(error.data?.message || 'Có lỗi xảy ra, vui lòng thử lại.', 'error')
   } finally {
     isSaving.value = false
   }
@@ -71,13 +77,23 @@ const changePassword = async () => {
   
   isSaving.value = true
   try {
-    // TODO: Implement password change API
-    showMessage('Đổi mật khẩu thành công!', 'success')
-    passwordForm.currentPassword = ''
-    passwordForm.newPassword = ''
-    passwordForm.confirmPassword = ''
-  } catch {
-    showMessage('Mật khẩu hiện tại không đúng.', 'error')
+    const result = await $fetch('/api/player/change-password', {
+      method: 'POST',
+      body: {
+        currentPassword: passwordForm.currentPassword,
+        newPassword: passwordForm.newPassword,
+        confirmPassword: passwordForm.confirmPassword,
+      },
+    }) as { success: boolean; message?: string }
+    
+    if (result.success) {
+      showMessage('Đổi mật khẩu thành công!', 'success')
+      passwordForm.currentPassword = ''
+      passwordForm.newPassword = ''
+      passwordForm.confirmPassword = ''
+    }
+  } catch (error: any) {
+    showMessage(error.data?.message || 'Mật khẩu hiện tại không đúng.', 'error')
   } finally {
     isSaving.value = false
   }

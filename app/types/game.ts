@@ -82,6 +82,10 @@ export enum FleetMission {
   THUOC_DIA = 'THUOC_DIA',                             // Colonize
   DO_THAM = 'DO_THAM',                                 // Espionage
   TAI_CHE = 'TAI_CHE',                                 // Recycle
+  THAM_HIEM = 'THAM_HIEM',                             // Expedition
+  PHA_HUY_MAT_TRANG = 'PHA_HUY_MAT_TRANG',             // Moon Destruction
+  GIU_VI_TRI = 'GIU_VI_TRI',                           // Hold Position (ACS)
+  LIEN_MINH_TAN_CONG = 'LIEN_MINH_TAN_CONG',           // Alliance Attack (ACS)
 }
 
 export enum DefenseType {

@@ -137,6 +137,10 @@ export const useCountdown = () => {
   const shipFormatted = computed(() => formatTime(shipRemaining.value))
   const shipFormattedVi = computed(() => formatTimeVi(shipRemaining.value))
   
+  const defenseRemaining = computed(() => getRemaining('defense_0'))
+  const defenseFormatted = computed(() => formatTime(defenseRemaining.value))
+  const defenseFormattedVi = computed(() => formatTimeVi(defenseRemaining.value))
+  
   return {
     countdowns,
     registerCountdown,
@@ -157,5 +161,8 @@ export const useCountdown = () => {
     shipRemaining,
     shipFormatted,
     shipFormattedVi,
+    defenseRemaining,
+    defenseFormatted,
+    defenseFormattedVi,
   }
 }
