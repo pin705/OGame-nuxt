@@ -8,18 +8,33 @@ definePageMeta({
   layout: 'game',
 })
 
-const { currentPlanet, buildQueue, upgradeBuilding, processQueue, isLoading } = useGame()
+const { currentPlanet, buildQueue, upgradeBuilding, processQueue, isLoading, fetchPlanet, fetchBuildQueue } = useGame()
 const { player } = useAuth()
 const countdown = useCountdown()
+
+// Track which building is being upgraded (for loading state)
+const upgradingBuildingType = ref<BuildingType | null>(null)
 
 // Auto-refresh data
 const refreshInterval = ref<NodeJS.Timeout | null>(null)
 
+// Watch for countdown completion to auto-refresh
+watch(() => countdown.buildingRemaining.value, async (remaining) => {
+  if (remaining === 0 && buildQueue.value?.building) {
+    // Building completed, refresh immediately
+    await Promise.all([
+      processQueue(),
+      fetchPlanet(),
+      fetchBuildQueue(),
+    ])
+  }
+})
+
 onMounted(async () => {
-  // Process queue and refresh every 10 seconds
+  // Process queue and refresh every 5 seconds for faster response
   refreshInterval.value = setInterval(async () => {
     await processQueue()
-  }, 10000)
+  }, 5000)
 })
 
 onUnmounted(() => {
@@ -115,16 +130,22 @@ const getBuildingRequirements = (type: BuildingType) => {
 const upgradeError = ref<string | null>(null)
 
 const handleUpgrade = async (type: BuildingType) => {
-  if (isAnyUpgrading.value) return
+  if (isAnyUpgrading.value || upgradingBuildingType.value) return
   
   upgradeError.value = null
-  const result = await upgradeBuilding(type) as { success: boolean; error?: string }
+  upgradingBuildingType.value = type
   
-  if (!result.success) {
-    upgradeError.value = result.error || 'Nâng cấp thất bại'
-    setTimeout(() => {
-      upgradeError.value = null
-    }, 3000)
+  try {
+    const result = await upgradeBuilding(type) as { success: boolean; error?: string }
+    
+    if (!result.success) {
+      upgradeError.value = result.error || 'Nâng cấp thất bại'
+      setTimeout(() => {
+        upgradeError.value = null
+      }, 3000)
+    }
+  } finally {
+    upgradingBuildingType.value = null
   }
 }
 </script>
@@ -236,15 +257,23 @@ const handleUpgrade = async (type: BuildingType) => {
         </div>
 
         <button
-          class="w-full py-2.5 text-sm font-display font-medium uppercase tracking-wider transition-all"
-          :class="canAffordBuilding(building.type as BuildingType, building.level) && !isAnyUpgrading && getBuildingRequirements(building.type as BuildingType).every(r => r.met)
+          class="w-full py-2.5 text-sm font-display font-medium uppercase tracking-wider transition-all relative"
+          :class="canAffordBuilding(building.type as BuildingType, building.level) && !isAnyUpgrading && !upgradingBuildingType && getBuildingRequirements(building.type as BuildingType).every(r => r.met)
             ? 'neo-btn-success'
             : 'neo-btn-ghost opacity-50 cursor-not-allowed'
           "
-          :disabled="!canAffordBuilding(building.type as BuildingType, building.level) || isAnyUpgrading || !getBuildingRequirements(building.type as BuildingType).every(r => r.met)"
+          :disabled="!canAffordBuilding(building.type as BuildingType, building.level) || isAnyUpgrading || !!upgradingBuildingType || !getBuildingRequirements(building.type as BuildingType).every(r => r.met)"
           @click="handleUpgrade(building.type as BuildingType)"
         >
-          <span class="flex items-center justify-center gap-2">
+          <!-- Loading spinner when this building is being upgraded -->
+          <span v-if="upgradingBuildingType === building.type" class="flex items-center justify-center gap-2">
+            <svg class="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Đang xử lý...
+          </span>
+          <span v-else class="flex items-center justify-center gap-2">
             <IconsNangCap class="w-4 h-4" />
             Nâng lên cấp {{ building.level + 1 }}
           </span>

@@ -7,32 +7,39 @@ import { BuildingType, ResearchType, ShipType, PlayerRank } from '~/types/game'
 
 // ============ Resource Production ============
 
+// Game speed multiplier - makes everything faster
+const SPEED_MULTIPLIER = GAME_CONFIG.GAME_SPEED || 5
+
 /**
  * Calculate metal (Tinh Thạch) production per hour
+ * Multiplied by game speed for faster progression
  */
 export function calculateMetalProduction(mineLevel: number): number {
   if (mineLevel === 0) return GAME_CONFIG.BASE_PRODUCTION.tinhThach
-  return Math.floor(30 * mineLevel * Math.pow(1.1, mineLevel))
+  return Math.floor(30 * mineLevel * Math.pow(1.1, mineLevel) * SPEED_MULTIPLIER)
 }
 
 /**
  * Calculate crystal (Năng Lượng Vũ Trụ) production per hour
+ * Multiplied by game speed for faster progression
  */
 export function calculateCrystalProduction(mineLevel: number): number {
   if (mineLevel === 0) return GAME_CONFIG.BASE_PRODUCTION.nangLuongVuTru
-  return Math.floor(20 * mineLevel * Math.pow(1.1, mineLevel))
+  return Math.floor(20 * mineLevel * Math.pow(1.1, mineLevel) * SPEED_MULTIPLIER)
 }
 
 /**
  * Calculate deuterium (Hồn Thạch) production per hour
+ * Multiplied by game speed for faster progression
  */
 export function calculateDeuteriumProduction(synthesizerLevel: number, temperature: number): number {
   if (synthesizerLevel === 0) return 0
-  return Math.floor(10 * synthesizerLevel * Math.pow(1.1, synthesizerLevel) * (1.36 - 0.004 * temperature))
+  return Math.floor(10 * synthesizerLevel * Math.pow(1.1, synthesizerLevel) * (1.36 - 0.004 * temperature) * SPEED_MULTIPLIER)
 }
 
 /**
  * Calculate energy (Điện Năng) production
+ * Energy doesn't scale with speed since it's a capacity not production
  */
 export function calculateEnergyProduction(solarPlantLevel: number): number {
   if (solarPlantLevel === 0) return 0
@@ -66,13 +73,14 @@ export function calculateBuildingCost(buildingType: BuildingType, targetLevel: n
 
 /**
  * Calculate building upgrade time in seconds
+ * Divided by game speed for faster builds
  */
 export function calculateBuildingTime(
   metalCost: number,
   crystalCost: number,
   roboticsLevel: number
 ): number {
-  const time = (metalCost + crystalCost) / (GAME_CONFIG.BUILD_SPEED_BASE * (1 + roboticsLevel)) * 3600
+  const time = (metalCost + crystalCost) / (GAME_CONFIG.BUILD_SPEED_BASE * (1 + roboticsLevel)) * 3600 / SPEED_MULTIPLIER
   return Math.max(Math.floor(time), 1) // Minimum 1 second
 }
 
@@ -94,13 +102,14 @@ export function calculateResearchCost(researchType: ResearchType, targetLevel: n
 
 /**
  * Calculate research time in seconds
+ * Divided by game speed for faster research
  */
 export function calculateResearchTime(
   metalCost: number,
   crystalCost: number,
   labLevel: number
 ): number {
-  const time = (metalCost + crystalCost) / (1000 * (1 + labLevel)) * 3600
+  const time = (metalCost + crystalCost) / (1000 * (1 + labLevel)) * 3600 / SPEED_MULTIPLIER
   return Math.max(Math.floor(time), 1)
 }
 
@@ -121,6 +130,7 @@ export function calculateShipCost(shipType: ShipType, count: number = 1) {
 
 /**
  * Calculate ship build time in seconds
+ * Divided by game speed for faster builds
  */
 export function calculateShipBuildTime(
   shipType: ShipType,
@@ -128,7 +138,7 @@ export function calculateShipBuildTime(
   shipyardLevel: number
 ): number {
   const config = SHIPS[shipType]
-  const timePerShip = (config.cost.tinhThach + config.cost.nangLuongVuTru) / (2500 * (1 + shipyardLevel)) * 3600
+  const timePerShip = (config.cost.tinhThach + config.cost.nangLuongVuTru) / (2500 * (1 + shipyardLevel)) * 3600 / SPEED_MULTIPLIER
   return Math.max(Math.floor(timePerShip * count), 1)
 }
 

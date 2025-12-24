@@ -17,6 +17,101 @@ const { player } = useAuth()
 const { currentPlanet, buildQueue, processQueue, isLoading } = useGame()
 const countdown = useCountdown()
 
+// Dismissed tips stored in localStorage
+const dismissedTips = ref<string[]>([])
+
+onMounted(() => {
+  const stored = localStorage.getItem('dismissedGameTips')
+  if (stored) {
+    dismissedTips.value = JSON.parse(stored)
+  }
+})
+
+const dismissTip = (id: string) => {
+  dismissedTips.value.push(id)
+  localStorage.setItem('dismissedGameTips', JSON.stringify(dismissedTips.value))
+}
+
+// Dynamic tips based on game state
+const gameTips = computed(() => {
+  const tips = []
+  const buildings = currentPlanet.value?.planet?.buildings || []
+  
+  const metalMine = buildings.find((b: any) => b.type === BuildingType.MO_TINH_THACH)?.level || 0
+  const crystalMine = buildings.find((b: any) => b.type === BuildingType.MAY_HAP_THU_NANG_LUONG)?.level || 0
+  const solarPlant = buildings.find((b: any) => b.type === BuildingType.LO_NANG_LUONG)?.level || 0
+  const researchLab = buildings.find((b: any) => b.type === BuildingType.VIEN_NGHIEN_CUU)?.level || 0
+  const shipyard = buildings.find((b: any) => b.type === BuildingType.XUONG_DONG_TAU)?.level || 0
+  
+  // Tip 1: Build Metal Mine first
+  if (metalMine < 3 && !dismissedTips.value.includes('build-metal')) {
+    tips.push({
+      id: 'build-metal',
+      title: '🎯 Ưu tiên Mỏ Tinh Thạch',
+      description: 'Tinh Thạch là tài nguyên cơ bản nhất. Hãy nâng cấp Mỏ Tinh Thạch lên cấp 3-5 trước để có nguồn thu ổn định.',
+      action: { label: 'Xây dựng ngay', href: '/game/buildings' },
+      priority: 1,
+    })
+  }
+  
+  // Tip 2: Build Solar Plant for energy
+  if (solarPlant < 2 && metalMine >= 2 && !dismissedTips.value.includes('build-solar')) {
+    tips.push({
+      id: 'build-solar',
+      title: '⚡ Thiếu Điện Năng?',
+      description: 'Mỏ cần điện để hoạt động! Xây Lò Năng Lượng để cung cấp điện cho các công trình khai thác.',
+      action: { label: 'Xây Lò Năng Lượng', href: '/game/buildings' },
+      priority: 2,
+    })
+  }
+  
+  // Tip 3: Build Crystal Mine
+  if (crystalMine < 2 && metalMine >= 3 && !dismissedTips.value.includes('build-crystal')) {
+    tips.push({
+      id: 'build-crystal',
+      title: '💎 Khai thác Năng Lượng Vũ Trụ',
+      description: 'Năng Lượng Vũ Trụ cần thiết cho nghiên cứu và tàu chiến. Xây Máy Hấp Thụ Năng Lượng ngay!',
+      action: { label: 'Xây dựng', href: '/game/buildings' },
+      priority: 3,
+    })
+  }
+  
+  // Tip 4: Build Research Lab
+  if (researchLab === 0 && metalMine >= 4 && !dismissedTips.value.includes('build-lab')) {
+    tips.push({
+      id: 'build-lab',
+      title: '🔬 Mở khóa Nghiên cứu',
+      description: 'Xây Viện Nghiên Cứu để nghiên cứu công nghệ mới, mở khóa tàu chiến và tính năng nâng cao.',
+      action: { label: 'Xây Viện Nghiên Cứu', href: '/game/buildings' },
+      priority: 4,
+    })
+  }
+  
+  // Tip 5: Build Shipyard
+  if (shipyard === 0 && researchLab >= 1 && !dismissedTips.value.includes('build-shipyard')) {
+    tips.push({
+      id: 'build-shipyard',
+      title: '🚀 Xây Xưởng Đóng Tàu',
+      description: 'Để đóng tàu chiến và tàu vận tải, bạn cần xây Xưởng Đóng Tàu.',
+      action: { label: 'Xây Xưởng Tàu', href: '/game/buildings' },
+      priority: 5,
+    })
+  }
+  
+  // Tip 6: Explore Galaxy
+  if (shipyard >= 2 && !dismissedTips.value.includes('explore-galaxy')) {
+    tips.push({
+      id: 'explore-galaxy',
+      title: '🌌 Khám phá Thiên Hà',
+      description: 'Xem bản đồ thiên hà để tìm hành tinh khác, do thám địch thủ hoặc tìm đồng minh.',
+      action: { label: 'Xem Thiên Hà', href: '/game/galaxy' },
+      priority: 6,
+    })
+  }
+  
+  return tips
+})
+
 // Auto-refresh data
 const refreshInterval = ref<NodeJS.Timeout | null>(null)
 
@@ -148,6 +243,14 @@ const getRankName = (rank: string) => {
           <p class="text-xs text-neutral-500 uppercase tracking-wider">Nhiệt độ</p>
           <p class="font-mono text-warning-400">{{ currentPlanet.planet.temperature }}°C</p>
         </div>
+      </div>
+
+      <!-- Game Guide for New Players -->
+      <GameGameGuide 
+        v-if="gameTips.length > 0"
+        :tips="gameTips"
+        @dismiss="dismissTip"
+      />
         <div class="text-right">
           <p class="text-xs text-neutral-500 uppercase tracking-wider">Sử dụng</p>
           <p class="font-mono"><span class="text-primary-500">{{ currentPlanet.planet.usedFields || 0 }}</span>/{{ currentPlanet.planet.maxFields || 163 }}</p>

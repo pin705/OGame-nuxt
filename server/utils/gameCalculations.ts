@@ -2,26 +2,30 @@
 import { BuildingType, ResearchType, ShipType, PlayerRank } from '~/types/game'
 
 // ============ Game Config Constants ============
+// Game Speed Multiplier - 5x faster gameplay
+export const GAME_SPEED = 5
+
 export const GAME_CONFIG = {
   GALAXIES: 9,
   SYSTEMS_PER_GALAXY: 499,
   PLANETS_PER_SYSTEM: 15,
   
   STARTING_RESOURCES: {
-    tinhThach: 500,
-    nangLuongVuTru: 500,
-    honThach: 0,
+    tinhThach: 2000,
+    nangLuongVuTru: 1500,
+    honThach: 500,
     dienNang: 0,
   },
   
+  // Base production 5x faster
   BASE_PRODUCTION: {
-    tinhThach: 30,
-    nangLuongVuTru: 15,
+    tinhThach: 150,
+    nangLuongVuTru: 75,
     honThach: 0,
     dienNang: 0,
   },
   
-  BUILD_SPEED_BASE: 2500,
+  BUILD_SPEED_BASE: 5000,
   
   XP_PER_BUILD: 10,
   XP_PER_RESEARCH: 25,
@@ -109,27 +113,32 @@ export function calculateBuildingTime(
   crystalCost: number,
   roboticsLevel: number
 ): number {
-  const time = (metalCost + crystalCost) / (GAME_CONFIG.BUILD_SPEED_BASE * (1 + roboticsLevel)) * 3600
+  // Divided by game speed for faster builds
+  const time = (metalCost + crystalCost) / (GAME_CONFIG.BUILD_SPEED_BASE * (1 + roboticsLevel)) * 3600 / GAME_SPEED
   return Math.max(Math.floor(time), 1)
 }
 
 export function calculateMetalProduction(level: number): number {
   if (level === 0) return GAME_CONFIG.BASE_PRODUCTION.tinhThach
-  return Math.floor(30 * level * Math.pow(1.1, level))
+  // 5x speed multiplier
+  return Math.floor(30 * level * Math.pow(1.1, level) * GAME_SPEED)
 }
 
 export function calculateCrystalProduction(level: number): number {
   if (level === 0) return GAME_CONFIG.BASE_PRODUCTION.nangLuongVuTru
-  return Math.floor(20 * level * Math.pow(1.1, level))
+  // 5x speed multiplier
+  return Math.floor(20 * level * Math.pow(1.1, level) * GAME_SPEED)
 }
 
 export function calculateDeuteriumProduction(level: number, temperature: number): number {
   if (level === 0) return 0
-  return Math.floor(10 * level * Math.pow(1.1, level) * (1.36 - 0.004 * temperature))
+  // 5x speed multiplier
+  return Math.floor(10 * level * Math.pow(1.1, level) * (1.36 - 0.004 * temperature) * GAME_SPEED)
 }
 
 export function calculateEnergyProduction(level: number): number {
   if (level === 0) return 0
+  // Energy doesn't scale with speed
   return Math.floor(20 * level * Math.pow(1.1, level))
 }
 

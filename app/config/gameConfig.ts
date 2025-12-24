@@ -528,31 +528,34 @@ export const GAME_CONFIG = {
   SYSTEMS_PER_GALAXY: 499,
   PLANETS_PER_SYSTEM: 15,
   
-  // Starting resources
+  // Starting resources - đủ để xây 2-3 buildings đầu tiên
   STARTING_RESOURCES: {
-    tinhThach: 500,
-    nangLuongVuTru: 500,
-    honThach: 0,
+    tinhThach: 5000,
+    nangLuongVuTru: 3000,
+    honThach: 1000,
     dienNang: 0,
   },
   
-  // Base production (per hour at level 0)
+  // Base production (per hour at level 0) - 20x speed
   BASE_PRODUCTION: {
-    tinhThach: 30,
-    nangLuongVuTru: 15,
-    honThach: 0,
+    tinhThach: 300,
+    nangLuongVuTru: 150,
+    honThach: 50,
     dienNang: 0,
   },
   
   // Storage capacity base
   BASE_STORAGE: {
-    tinhThach: 10000,
-    nangLuongVuTru: 10000,
-    honThach: 10000,
+    tinhThach: 100000,
+    nangLuongVuTru: 100000,
+    honThach: 50000,
   },
   
-  // Build speed multiplier (higher = slower)
-  BUILD_SPEED_BASE: 2500,
+  // Game speed multiplier (higher = faster game) - 20x cho gameplay nhanh hơn
+  GAME_SPEED: 20,
+  
+  // Build speed multiplier (higher = slower builds, but we divide by GAME_SPEED)
+  BUILD_SPEED_BASE: 10000,
   
   // Experience points per action
   XP_PER_BUILD: 10,

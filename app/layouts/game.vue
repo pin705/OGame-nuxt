@@ -13,6 +13,7 @@ const router = useRouter()
 const auth = useAuth()
 const game = useGame()
 const countdown = useCountdown()
+const notifications = useNotifications()
 
 // Navigation items with component references
 const navigation = [
@@ -23,10 +24,10 @@ const navigation = [
   { name: 'Phòng thủ', shortName: 'Phòng thủ', href: '/game/defenses', iconType: 'defense' },
   { name: 'Hạm đội', shortName: 'Hạm đội', href: '/game/fleet', iconType: 'fleet' },
   { name: 'Thiên hà', shortName: 'Thiên hà', href: '/game/galaxy', iconType: 'galaxy' },
-  { name: 'Thám hiểm', shortName: 'Thám hiểm', href: '/game/expedition', iconType: 'galaxy' },
+  { name: 'Thám hiểm', shortName: 'Thám hiểm', href: '/game/expedition', iconType: 'expedition' },
   { name: 'Bảng xếp hạng', shortName: 'Xếp hạng', href: '/game/highscore', iconType: 'highscore' },
   { name: 'Liên minh', shortName: 'Liên minh', href: '/game/alliance', iconType: 'alliance' },
-  { name: 'Chiến hữu', shortName: 'Bạn bè', href: '/game/buddies', iconType: 'player' },
+  { name: 'Chiến hữu', shortName: 'Bạn bè', href: '/game/buddies', iconType: 'buddies' },
   { name: 'Tin nhắn', shortName: 'Tin nhắn', href: '/game/messages', iconType: 'message' },
 ]
 
@@ -94,15 +95,18 @@ const connectWebSocket = () => {
       }
     })
     
-    websocket.on('building_complete', async () => {
+    websocket.on('building_complete', async (event) => {
+      notifications.success('Nâng cấp hoàn tất!', event.data?.buildingName || 'Công trình đã được nâng cấp')
       await game.processQueue()
     })
     
-    websocket.on('research_complete', async () => {
+    websocket.on('research_complete', async (event) => {
+      notifications.success('Nghiên cứu hoàn tất!', event.data?.researchName || 'Nghiên cứu đã hoàn thành')
       await game.processQueue()
     })
     
-    websocket.on('ship_complete', async () => {
+    websocket.on('ship_complete', async (event) => {
+      notifications.success('Đóng tàu hoàn tất!', event.data?.shipName || 'Tàu đã được đóng xong')
       await game.processQueue()
     })
     
@@ -112,6 +116,7 @@ const connectWebSocket = () => {
     
     websocket.on('attack_incoming', (event) => {
       // Show attack warning notification
+      notifications.warning('Hạm đội đang tiến đến!', 'Hành tinh của bạn sắp bị tấn công', 10000)
       console.warn('[ATTACK INCOMING]', event.data)
     })
   }
@@ -186,6 +191,9 @@ const handleLogout = async () => {
     <!-- Grid overlay -->
     <div class="fixed inset-0 bg-grid pointer-events-none opacity-30" />
 
+    <!-- Toast Notifications -->
+    <UiNotificationToast />
+
     <!-- Sidebar - Desktop only -->
     <aside
       class="fixed inset-y-0 left-0 z-40 w-64 hidden lg:block"
@@ -232,9 +240,11 @@ const handleLogout = async () => {
                 <IconsHamDoi v-else-if="item.iconType === 'fleet'" class="w-5 h-5" />
                 <IconsPhongThu v-else-if="item.iconType === 'defense'" class="w-5 h-5" />
                 <IconsThienHa v-else-if="item.iconType === 'galaxy'" class="w-5 h-5" />
-                <IconsNguoiChoi v-else-if="item.iconType === 'highscore'" class="w-5 h-5" />
-                <IconsNguoiChoi v-else-if="item.iconType === 'alliance'" class="w-5 h-5" />
-                <IconsThongTin v-else-if="item.iconType === 'message'" class="w-5 h-5" />
+                <IconsThamHiem v-else-if="item.iconType === 'expedition'" class="w-5 h-5" />
+                <IconsBangXepHang v-else-if="item.iconType === 'highscore'" class="w-5 h-5" />
+                <IconsLienMinh v-else-if="item.iconType === 'alliance'" class="w-5 h-5" />
+                <IconsChienHuu v-else-if="item.iconType === 'buddies'" class="w-5 h-5" />
+                <IconsTinNhan v-else-if="item.iconType === 'message'" class="w-5 h-5" />
               </span>
               <span>{{ item.name }}</span>
               <!-- Unread badge -->

@@ -12,6 +12,8 @@ interface Props {
   canUpgrade?: boolean
   disabled?: boolean
   requirements?: Requirement[]
+  isLoading?: boolean  // New prop for loading state
+  disabledReason?: string  // New prop for tooltip
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -20,6 +22,8 @@ const props = withDefaults(defineProps<Props>(), {
   canUpgrade: true,
   disabled: false,
   requirements: () => [],
+  isLoading: false,
+  disabledReason: '',
 })
 
 const emit = defineEmits<{
@@ -28,6 +32,17 @@ const emit = defineEmits<{
 
 const config = computed(() => BUILDINGS[props.type])
 const nextLevelCost = computed(() => calculateBuildingCost(props.type, props.level + 1))
+
+// Compute the reason why upgrade is disabled
+const computedDisabledReason = computed(() => {
+  if (props.disabledReason) return props.disabledReason
+  if (props.isUpgrading) return 'Đang trong quá trình nâng cấp'
+  if (props.requirements && !props.requirements.every(r => r.met)) {
+    return 'Chưa đủ yêu cầu công trình/nghiên cứu'
+  }
+  if (!props.canUpgrade) return 'Không đủ tài nguyên để nâng cấp'
+  return ''
+})
 
 const timeRemaining = ref('')
 let timer: ReturnType<typeof setInterval> | null = null
@@ -136,22 +151,40 @@ onUnmounted(() => {
       />
 
       <!-- Upgrade Button -->
+      <div class="relative group/btn">
+        <button
+          v-if="!isUpgrading"
+          :disabled="!canUpgrade || disabled || isLoading || (requirements && !requirements.every(r => r.met))"
+          class="btn-primary w-full text-sm flex items-center justify-center gap-2 transition-all duration-200"
+          :class="{ 
+            'opacity-50 cursor-not-allowed': !canUpgrade || disabled || (requirements && !requirements.every(r => r.met)),
+            'animate-pulse': isLoading
+          }"
+          @click="emit('upgrade', type)"
+        >
+          <IconsTaiDang v-if="isLoading" class="w-4 h-4 animate-spin" />
+          <IconsNangCap v-else class="w-4 h-4" />
+          <span v-if="isLoading">Đang xử lý...</span>
+          <span v-else>Nâng cấp lên cấp {{ level + 1 }}</span>
+        </button>
+        
+        <!-- Tooltip showing why button is disabled -->
+        <div 
+          v-if="computedDisabledReason && !isUpgrading"
+          class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-space-800 border border-alert-400/30 rounded-lg text-xs text-alert-300 whitespace-nowrap opacity-0 invisible group-hover/btn:opacity-100 group-hover/btn:visible transition-all duration-200 z-20"
+        >
+          <IconsCanhBao class="w-3 h-3 inline mr-1" />
+          {{ computedDisabledReason }}
+          <div class="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-space-800" />
+        </div>
+      </div>
+      
       <button
-        v-if="!isUpgrading"
-        :disabled="!canUpgrade || disabled || (requirements && !requirements.every(r => r.met))"
-        class="btn-primary w-full text-sm flex items-center justify-center gap-2"
-        :class="{ 'opacity-50 cursor-not-allowed': !canUpgrade || disabled || (requirements && !requirements.every(r => r.met)) }"
-        @click="emit('upgrade', type)"
-      >
-        <IconsNangCap class="w-4 h-4" />
-        Nâng cấp lên cấp {{ level + 1 }}
-      </button>
-      <button
-        v-else
+        v-if="isUpgrading"
         disabled
         class="btn-outline w-full text-sm opacity-50 cursor-not-allowed flex items-center justify-center gap-2"
       >
-        <IconsThoiGian class="w-4 h-4" />
+        <IconsThoiGian class="w-4 h-4 animate-spin" />
         Đang xây dựng...
       </button>
     </div>

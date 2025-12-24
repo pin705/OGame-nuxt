@@ -45,3 +45,11 @@ export { default as TaiDang } from './TaiDang.vue'
 export { default as HoanThanh } from './HoanThanh.vue'
 export { default as CanhBao } from './CanhBao.vue'
 export { default as ThongTin } from './ThongTin.vue'
+
+// Social Icons
+export { default as LienMinh } from './LienMinh.vue'
+export { default as BangXepHang } from './BangXepHang.vue'
+export { default as ChienHuu } from './ChienHuu.vue'
+export { default as TinNhan } from './TinNhan.vue'
+export { default as ThamHiem } from './ThamHiem.vue'
+export { default as HuyChuong } from './HuyChuong.vue'
