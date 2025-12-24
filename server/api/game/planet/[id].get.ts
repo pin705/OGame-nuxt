@@ -103,6 +103,8 @@ export default defineEventHandler(async (event) => {
           usedFields: planet.usedFields,
           isHomePlanet: planet.isHomePlanet,
         },
+        // Include research from player (research is player-wide, not planet-specific)
+        researches: player?.researches || [],
         production,
         energyBalance: energyProduction - energyConsumption,
         buildQueue,

@@ -33,8 +33,6 @@ const mobileNav = [
   { name: 'Thêm', href: '', iconType: 'menu' },
 ]
 
-const isSidebarOpen = ref(true)
-const isMobileMenuOpen = ref(false)
 const isMoreMenuOpen = ref(false)
 const isInitialized = ref(false)
 
@@ -128,22 +126,9 @@ const handleLogout = async () => {
     <!-- Grid overlay -->
     <div class="fixed inset-0 bg-grid pointer-events-none opacity-30" />
 
-    <!-- Mobile menu button -->
-    <button
-      class="fixed top-4 left-4 z-50 lg:hidden neo-card p-2 hover:glow-cyan"
-      @click="isMobileMenuOpen = !isMobileMenuOpen"
-    >
-      <IconsDong v-if="isMobileMenuOpen" class="w-6 h-6 text-primary-500" />
-      <IconsMenu v-else class="w-6 h-6 text-primary-500" />
-    </button>
-
-    <!-- Sidebar -->
+    <!-- Sidebar - Desktop only -->
     <aside
-      class="fixed inset-y-0 left-0 z-40 w-64 transform transition-transform duration-300 lg:translate-x-0"
-      :class="{
-        'translate-x-0': isMobileMenuOpen,
-        '-translate-x-full': !isMobileMenuOpen && !isSidebarOpen,
-      }"
+      class="fixed inset-y-0 left-0 z-40 w-64 hidden lg:block"
     >
       <!-- Sidebar inner with glassmorphism -->
       <div class="h-full bg-[#0D1117]/95 backdrop-blur-2xl border-r border-[rgba(0,209,255,0.15)]">
@@ -178,7 +163,6 @@ const handleLogout = async () => {
               :class="isActiveRoute(item.href) 
                 ? 'bg-[#00D1FF]/15 text-[#00D1FF] border-l-2 border-[#00D1FF] shadow-[inset_0_0_20px_rgba(0,209,255,0.1)]' 
                 : 'text-neutral-400 hover:text-white hover:bg-white/5 border-l-2 border-transparent hover:border-[#00D1FF]/30'"
-              @click="isMobileMenuOpen = false"
             >
               <span class="w-5 h-5 flex items-center justify-center" :class="isActiveRoute(item.href) ? 'text-[#00D1FF] drop-shadow-[0_0_8px_rgba(0,209,255,0.7)]' : 'text-neutral-500 group-hover:text-[#00D1FF]/70'">
                 <IconsTrungTamChiHuy v-if="item.iconType === 'dashboard'" class="w-5 h-5" />
@@ -218,11 +202,11 @@ const handleLogout = async () => {
       </div>
     </aside>
 
-    <!-- Overlay for mobile -->
+    <!-- Overlay for mobile "More" menu -->
     <div
-      v-if="isMobileMenuOpen || isMoreMenuOpen"
+      v-if="isMoreMenuOpen"
       class="fixed inset-0 z-30 bg-space-950/80 backdrop-blur-sm lg:hidden"
-      @click="isMobileMenuOpen = false; isMoreMenuOpen = false"
+      @click="isMoreMenuOpen = false"
     />
 
     <!-- Main content -->
@@ -239,19 +223,34 @@ const handleLogout = async () => {
       </div>
       
       <template v-else>
-        <!-- Top bar with resources (Mobile optimized) -->
+        <!-- Top bar with resources (Responsive) -->
         <header class="sticky top-0 z-20 bg-[#0D1117]/95 backdrop-blur-xl border-b border-[rgba(0,209,255,0.1)]">
           <div class="px-3 py-2">
-            <GameResourceBar
-              :tinh-thach="resources.tinhThach"
-              :nang-luong-vu-tru="resources.nangLuongVuTru"
-              :hon-thach="resources.honThach"
-              :dien-nang="resources.dienNang"
-              :dien-nang-max="resources.dienNangMax"
-              show-production
-              :production="production"
-              compact
-            />
+            <!-- Mobile: Compact view (icons + numbers only) -->
+            <div class="lg:hidden">
+              <GameResourceBar
+                :tinh-thach="resources.tinhThach"
+                :nang-luong-vu-tru="resources.nangLuongVuTru"
+                :hon-thach="resources.honThach"
+                :dien-nang="resources.dienNang"
+                :dien-nang-max="resources.dienNangMax"
+                show-production
+                :production="production"
+                compact
+              />
+            </div>
+            <!-- Desktop: Full view (with labels) -->
+            <div class="hidden lg:block">
+              <GameResourceBar
+                :tinh-thach="resources.tinhThach"
+                :nang-luong-vu-tru="resources.nangLuongVuTru"
+                :hon-thach="resources.honThach"
+                :dien-nang="resources.dienNang"
+                :dien-nang-max="resources.dienNangMax"
+                show-production
+                :production="production"
+              />
+            </div>
           </div>
         </header>
 

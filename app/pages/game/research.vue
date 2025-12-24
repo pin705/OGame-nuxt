@@ -10,28 +10,39 @@ definePageMeta({
 const { currentPlanet, buildQueue, isLoading, startResearch } = useGame()
 const countdown = useCountdown()
 
-// Get research data from current planet
+// Get research data from API (researches are player-wide, returned with planet data)
 const researches = computed(() => {
-  if (!currentPlanet.value?.research) return []
-  const research = currentPlanet.value.research
-  return Object.entries(research).map(([type, level]) => ({
-    type: type as ResearchType,
-    level: level as number,
-    isResearching: false,
-    buildCount: 0,
-  }))
+  // API returns researches array in currentPlanet.value.researches
+  const researchData = currentPlanet.value?.researches || []
+  
+  // If no research data, create default list with all research types at level 0
+  const allTypes = Object.values(ResearchType)
+  
+  return allTypes.map(type => {
+    // Find existing research from API data
+    const existing = researchData.find((r: any) => r.type === type)
+    return {
+      type: type as ResearchType,
+      level: existing?.level || 0,
+      isResearching: researchQueue.value?.type === type,
+    }
+  })
 })
 
 // Get resources from planet
-const resources = computed(() => currentPlanet.value?.resources || {
+const resources = computed(() => currentPlanet.value?.planet?.resources || {
   tinhThach: 0,
   nangLuongVuTru: 0,
   honThach: 0,
   dienNang: 0,
 })
 
-// Get lab level
-const labLevel = computed(() => currentPlanet.value?.buildings?.vienNghienCuu || 1)
+// Get lab level from planet buildings
+const labLevel = computed(() => {
+  const buildings = currentPlanet.value?.planet?.buildings || []
+  const lab = buildings.find((b: any) => b.type === 'VIEN_NGHIEN_CUU')
+  return lab?.level || 0
+})
 
 // Check build queue for active research
 // API returns: { building: {...}, research: {...}, ships: [...], defenses: [...] }
