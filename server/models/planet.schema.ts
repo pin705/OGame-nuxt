@@ -55,6 +55,10 @@ export const PlanetSchema = defineMongooseModel({
         default: 0,
       },
     },
+    debris: {
+      tinhThach: { type: 'number', default: 0, min: 0 },
+      nangLuongVuTru: { type: 'number', default: 0, min: 0 },
+    },
     buildings: [{
       type: {
         type: 'string',

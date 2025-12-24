@@ -1,33 +1,7 @@
 import { requireAuth } from '~~/server/utils/auth'
-
-// Research types and costs
-const ResearchType = {
-  CONG_NGHE_NANG_LUONG: 'CONG_NGHE_NANG_LUONG',
-  CONG_NGHE_KHAI_THAC: 'CONG_NGHE_KHAI_THAC',
-  CONG_NGHE_VU_KHI: 'CONG_NGHE_VU_KHI',
-  CONG_NGHE_GIAP: 'CONG_NGHE_GIAP',
-  CONG_NGHE_KHIEN: 'CONG_NGHE_KHIEN',
-  DONG_CO_DOT_CHAY: 'DONG_CO_DOT_CHAY',
-  DONG_CO_XUNG: 'DONG_CO_XUNG',
-  DONG_CO_SIEU_KHONG_GIAN: 'DONG_CO_SIEU_KHONG_GIAN',
-  CONG_NGHE_GIAN_DIEP: 'CONG_NGHE_GIAN_DIEP',
-  CONG_NGHE_MAY_TINH: 'CONG_NGHE_MAY_TINH',
-  CONG_NGHE_SIEU_KHONG_GIAN: 'CONG_NGHE_SIEU_KHONG_GIAN',
-} as const
-
-const RESEARCH_CONFIG: Record<string, { baseCost: { metal: number; crystal: number; deut: number }; factor: number }> = {
-  [ResearchType.CONG_NGHE_NANG_LUONG]: { baseCost: { metal: 0, crystal: 800, deut: 400 }, factor: 2 },
-  [ResearchType.CONG_NGHE_KHAI_THAC]: { baseCost: { metal: 800, crystal: 400, deut: 0 }, factor: 2 },
-  [ResearchType.CONG_NGHE_VU_KHI]: { baseCost: { metal: 800, crystal: 200, deut: 0 }, factor: 2 },
-  [ResearchType.CONG_NGHE_GIAP]: { baseCost: { metal: 1000, crystal: 0, deut: 0 }, factor: 2 },
-  [ResearchType.CONG_NGHE_KHIEN]: { baseCost: { metal: 200, crystal: 600, deut: 0 }, factor: 2 },
-  [ResearchType.DONG_CO_DOT_CHAY]: { baseCost: { metal: 400, crystal: 0, deut: 600 }, factor: 2 },
-  [ResearchType.DONG_CO_XUNG]: { baseCost: { metal: 2000, crystal: 4000, deut: 600 }, factor: 2 },
-  [ResearchType.DONG_CO_SIEU_KHONG_GIAN]: { baseCost: { metal: 10000, crystal: 20000, deut: 6000 }, factor: 2 },
-  [ResearchType.CONG_NGHE_GIAN_DIEP]: { baseCost: { metal: 200, crystal: 1000, deut: 200 }, factor: 2 },
-  [ResearchType.CONG_NGHE_MAY_TINH]: { baseCost: { metal: 0, crystal: 400, deut: 600 }, factor: 2 },
-  [ResearchType.CONG_NGHE_SIEU_KHONG_GIAN]: { baseCost: { metal: 0, crystal: 4000, deut: 2000 }, factor: 2 },
-}
+import { RESEARCHES } from '~/config/gameConfig'
+import { checkRequirements } from '~~/server/utils/techTree'
+import { ResearchType } from '~/types/game'
 
 export default defineEventHandler(async (event) => {
   const auth = await requireAuth(event)
@@ -41,7 +15,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  if (!Object.values(ResearchType).includes(researchType as any)) {
+  if (!RESEARCHES[researchType as ResearchType]) {
     throw createError({
       statusCode: 400,
       message: 'Invalid research type',
@@ -96,23 +70,25 @@ export default defineEventHandler(async (event) => {
       })
     }
 
+    // Check requirements
+    const config = RESEARCHES[researchType as ResearchType]
+    const reqCheck = checkRequirements(config.requirements, planet, player)
+    if (!reqCheck.met) {
+      throw createError({
+        statusCode: 400,
+        message: `Chưa đủ điều kiện: ${reqCheck.missing.join(', ')}`,
+      })
+    }
+
     const researchIndex = player.researches?.findIndex((r: any) => r.type === researchType) ?? -1
     const currentLevel = researchIndex >= 0 ? player.researches[researchIndex].level : 0
     const targetLevel = currentLevel + 1
 
     // Calculate cost
-    const config = RESEARCH_CONFIG[researchType]
-    if (!config) {
-      throw createError({
-        statusCode: 400,
-        message: 'Unknown research type',
-      })
-    }
-
     const cost = {
-      tinhThach: Math.floor(config.baseCost.metal * Math.pow(config.factor, targetLevel - 1)),
-      nangLuongVuTru: Math.floor(config.baseCost.crystal * Math.pow(config.factor, targetLevel - 1)),
-      honThach: Math.floor(config.baseCost.deut * Math.pow(config.factor, targetLevel - 1)),
+      tinhThach: Math.floor(config.baseCost.tinhThach * Math.pow(config.costFactor, targetLevel - 1)),
+      nangLuongVuTru: Math.floor(config.baseCost.nangLuongVuTru * Math.pow(config.costFactor, targetLevel - 1)),
+      honThach: Math.floor(config.baseCost.honThach * Math.pow(config.costFactor, targetLevel - 1)),
     }
 
     // Check resources

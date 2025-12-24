@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { FleetMission } from '~/types/game'
+import { formatNumber } from '~/utils/gameFormulas'
 
 definePageMeta({
   layout: 'game',
@@ -93,6 +94,17 @@ const handleAttack = (slot: any) => {
     position: slot.position,
     mission: FleetMission.TAN_CONG,
     targetName: slot.planet?.name
+  }))
+  router.push('/game/fleet')
+}
+
+const handleRecycle = (slot: any) => {
+  sessionStorage.setItem('fleetDestination', JSON.stringify({
+    galaxy: currentGalaxy.value,
+    system: currentSystem.value,
+    position: slot.position,
+    mission: FleetMission.TAI_CHE,
+    targetName: `Bãi phế liệu [${currentGalaxy.value}:${currentSystem.value}:${slot.position}]`
   }))
   router.push('/game/fleet')
 }
@@ -230,6 +242,10 @@ const handleColonize = (slot: any) => {
                 <div>
                   <p class="font-medium">{{ slot.planet.name }}</p>
                   <p v-if="isOwnPlanet(slot)" class="text-xs text-primary-500">Hành tinh của bạn</p>
+                  <div v-if="slot.hasDebris" class="flex items-center gap-1 text-xs text-slate-400 mt-1" title="Bãi phế liệu">
+                    <IconsTauTaiChe class="w-3 h-3" />
+                    <span>{{ formatNumber((slot.debris?.tinhThach || 0) + (slot.debris?.nangLuongVuTru || 0)) }}</span>
+                  </div>
                 </div>
               </div>
             </template>
@@ -263,31 +279,28 @@ const handleColonize = (slot: any) => {
           </div>
 
           <!-- Actions -->
-          <div class="col-span-3">
+          <div class="col-span-3 flex items-center justify-center gap-1 flex-wrap">
             <template v-if="slot.planet && !isOwnPlanet(slot)">
-              <div class="flex items-center justify-center gap-2">
-                <button class="neo-btn-ghost text-xs px-3 py-1 flex items-center gap-1" @click="handleSpy(slot)">
+                <button class="neo-btn-ghost text-xs p-1.5 flex items-center gap-1" title="Do thám" @click="handleSpy(slot)">
                   <IconsTauDoTham class="w-4 h-4" />
-                  Do thám
                 </button>
-                <button class="neo-btn-ghost text-xs px-3 py-1 text-alert-400 hover:bg-alert-400/10 flex items-center gap-1" @click="handleAttack(slot)">
+                <button class="neo-btn-ghost text-xs p-1.5 text-alert-400 hover:bg-alert-400/10 flex items-center gap-1" title="Tấn công" @click="handleAttack(slot)">
                   <IconsTanCong class="w-4 h-4" />
-                  Tấn công
                 </button>
-                <button class="neo-btn-ghost text-xs px-3 py-1 flex items-center gap-1" @click="handleTransport(slot)">
+                <button class="neo-btn-ghost text-xs p-1.5 flex items-center gap-1" title="Vận chuyển" @click="handleTransport(slot)">
                   <IconsHamDoi class="w-4 h-4" />
-                  Vận chuyển
                 </button>
-              </div>
             </template>
             <template v-else-if="!slot.planet">
-              <div class="flex items-center justify-center">
-                <button class="neo-btn-ghost text-xs px-3 py-1 text-success-400 hover:bg-success-400/10 flex items-center gap-1" @click="handleColonize(slot)">
+                <button class="neo-btn-ghost text-xs p-1.5 text-success-400 hover:bg-success-400/10 flex items-center gap-1" title="Thuộc địa hóa" @click="handleColonize(slot)">
                   <IconsHanhTinh class="w-4 h-4" />
-                  Thuộc địa hóa
                 </button>
-              </div>
             </template>
+            
+            <!-- Recycle -->
+            <button v-if="slot.hasDebris" class="neo-btn-ghost text-xs p-1.5 text-green-400 hover:bg-green-400/10 flex items-center gap-1" title="Thu gom phế liệu" @click="handleRecycle(slot)">
+              <IconsTauTaiChe class="w-4 h-4" />
+            </button>
           </div>
         </div>
       </div>

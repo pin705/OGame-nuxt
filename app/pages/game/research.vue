@@ -3,12 +3,25 @@ import { ResearchType } from '~/types/game'
 import { RESEARCHES } from '~/config/gameConfig'
 import { calculateResearchCost, formatNumber, formatDuration } from '~/utils/gameFormulas'
 
+import { checkRequirements } from '~/utils/techTree'
+
 definePageMeta({
   layout: 'game',
 })
 
 const { currentPlanet, buildQueue, isLoading, startResearch } = useGame()
 const countdown = useCountdown()
+
+const getResearchRequirements = (type: ResearchType) => {
+  const config = RESEARCHES[type]
+  if (!config.requirements) return []
+  
+  const planetBuildings = currentPlanet.value?.planet?.buildings || []
+  const playerResearches = currentPlanet.value?.researches || []
+  
+  const check = checkRequirements(config.requirements, planetBuildings, playerResearches)
+  return check.requirements
+}
 
 // Get research data from API (researches are player-wide, returned with planet data)
 const researches = computed(() => {
@@ -203,6 +216,13 @@ const handleResearch = async (type: ResearchType, currentLevel: number) => {
               {{ RESEARCHES[research.type]?.description || '' }}
             </p>
 
+            <!-- Requirements -->
+            <GameRequirementList
+              v-if="getResearchRequirements(research.type).length > 0 && !getResearchRequirements(research.type).every(r => r.met)"
+              :requirements="getResearchRequirements(research.type)"
+              class="mb-3"
+            />
+
             <!-- Cost -->
             <div v-if="researchQueue?.researchType !== research.type" class="mb-3">
               <p class="text-xs text-neutral-500 mb-1 uppercase tracking-wider font-display">Chi phí cấp {{ research.level + 1 }}:</p>
@@ -238,9 +258,9 @@ const handleResearch = async (type: ResearchType, currentLevel: number) => {
             <!-- Button -->
             <button
               v-if="researchQueue?.researchType !== research.type"
-              :disabled="!canAffordResearch(research.type, research.level) || isAnyResearching"
+              :disabled="!canAffordResearch(research.type, research.level) || isAnyResearching || !getResearchRequirements(research.type).every(r => r.met)"
               class="text-sm w-full flex items-center justify-center gap-2"
-              :class="canAffordResearch(research.type, research.level) && !isAnyResearching ? 'neo-btn-primary' : 'neo-btn-ghost opacity-50 cursor-not-allowed'"
+              :class="canAffordResearch(research.type, research.level) && !isAnyResearching && getResearchRequirements(research.type).every(r => r.met) ? 'neo-btn-primary' : 'neo-btn-ghost opacity-50 cursor-not-allowed'"
               @click="handleResearch(research.type, research.level)"
             >
               <IconsNghienCuu class="w-4 h-4" />

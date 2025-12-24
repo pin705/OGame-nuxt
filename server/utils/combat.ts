@@ -2,6 +2,8 @@
 // THÔN PHỆ TINH KHÔNG - Combat System
 // ========================================
 
+import { SHIPS } from '~/config/gameConfig'
+
 // Ship combat stats
 export const SHIP_STATS: Record<string, {
   attack: number
@@ -268,7 +270,29 @@ export function simulateBattle(
 
   // Calculate debris field (30% of metal/crystal from destroyed ships)
   let debrisField = { tinhThach: 0, nangLuongVuTru: 0 }
-  // TODO: Add proper debris calculation based on ship costs
+  
+  // Calculate from attacker losses
+  for (const loss of attackerLosses) {
+    const shipConfig = SHIPS[loss.type as keyof typeof SHIPS]
+    if (shipConfig && loss.lost > 0) {
+      debrisField.tinhThach += loss.lost * shipConfig.cost.tinhThach * 0.3
+      debrisField.nangLuongVuTru += loss.lost * shipConfig.cost.nangLuongVuTru * 0.3
+    }
+  }
+
+  // Calculate from defender losses (ships only for now)
+  for (const loss of defenderLosses) {
+    // Check if it's a ship (exists in SHIPS config)
+    const shipConfig = SHIPS[loss.type as keyof typeof SHIPS]
+    if (shipConfig && loss.lost > 0) {
+      debrisField.tinhThach += loss.lost * shipConfig.cost.tinhThach * 0.3
+      debrisField.nangLuongVuTru += loss.lost * shipConfig.cost.nangLuongVuTru * 0.3
+    }
+  }
+
+  // Round values
+  debrisField.tinhThach = Math.floor(debrisField.tinhThach)
+  debrisField.nangLuongVuTru = Math.floor(debrisField.nangLuongVuTru)
 
   // Calculate loot (attacker wins = can take up to 50% of resources)
   let loot = { tinhThach: 0, nangLuongVuTru: 0, honThach: 0 }

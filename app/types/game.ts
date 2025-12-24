@@ -124,6 +124,10 @@ export interface BuildingConfig {
   costFactor: number;
   energyConsumption?: number;
   energyProduction?: number;
+  requirements?: {
+    buildings?: { type: BuildingType; level: number }[];
+    researches?: { type: ResearchType; level: number }[];
+  };
 }
 
 export interface ResearchLevel {
@@ -190,6 +194,7 @@ export interface Player {
   rank: PlayerRank;
   planets: string[];
   homePlanet: string;
+  researches: ResearchLevel[];
   alliance?: string;
   createdAt: Date;
   lastActive: Date;

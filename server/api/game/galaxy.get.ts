@@ -54,7 +54,8 @@ export default defineEventHandler(async (event) => {
             rank: planet.owner.rank,
           } : null,
           hasMoon: false, // TODO: Implement moons
-          hasDebris: false, // TODO: Implement debris fields
+          hasDebris: (planet.debris?.tinhThach || 0) > 0 || (planet.debris?.nangLuongVuTru || 0) > 0,
+          debris: planet.debris,
         })
       } else {
         systemView.push({
@@ -63,6 +64,7 @@ export default defineEventHandler(async (event) => {
           owner: null,
           hasMoon: false,
           hasDebris: false,
+          debris: null,
         })
       }
     }

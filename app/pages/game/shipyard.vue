@@ -2,6 +2,7 @@
 import { ShipType } from '~/types/game'
 import { SHIPS } from '~/config/gameConfig'
 import { calculateShipCost, formatNumber } from '~/utils/gameFormulas'
+import { checkRequirements } from '~/utils/techTree'
 
 definePageMeta({
   layout: 'game',
@@ -9,6 +10,17 @@ definePageMeta({
 
 const { currentPlanet, buildQueue, buildShips, processQueue, isLoading } = useGame()
 const countdown = useCountdown()
+
+const getShipRequirements = (type: ShipType) => {
+  const config = SHIPS[type]
+  if (!config.requirements) return []
+  
+  const planetBuildings = currentPlanet.value?.planet?.buildings || []
+  const playerResearches = currentPlanet.value?.researches || []
+  
+  const check = checkRequirements(config.requirements, planetBuildings, playerResearches)
+  return check.requirements
+}
 
 // Auto-refresh data
 const refreshInterval = ref<NodeJS.Timeout | null>(null)
@@ -220,6 +232,13 @@ const handleBuild = async (type: ShipType) => {
               {{ SHIPS[ship.type].description }}
             </p>
 
+            <!-- Requirements -->
+            <GameRequirementList
+              v-if="getShipRequirements(ship.type).length > 0 && !getShipRequirements(ship.type).every(r => r.met)"
+              :requirements="getShipRequirements(ship.type)"
+              class="mb-3"
+            />
+
             <!-- Stats -->
             <div class="flex flex-wrap gap-3 text-xs text-neutral-500 mb-3 font-mono">
               <span class="flex items-center gap-1">
@@ -276,9 +295,9 @@ const handleBuild = async (type: ShipType) => {
                 Max
               </button>
               <button
-                :disabled="!canAffordShip(ship.type, buildQuantity[ship.type] || 1) || isAnyBuilding"
+                :disabled="!canAffordShip(ship.type, buildQuantity[ship.type] || 1) || isAnyBuilding || !getShipRequirements(ship.type).every(r => r.met)"
                 class="flex-1 text-sm flex items-center justify-center gap-2"
-                :class="canAffordShip(ship.type, buildQuantity[ship.type] || 1) && !isAnyBuilding ? 'neo-btn-success' : 'neo-btn-ghost opacity-50 cursor-not-allowed'"
+                :class="canAffordShip(ship.type, buildQuantity[ship.type] || 1) && !isAnyBuilding && getShipRequirements(ship.type).every(r => r.met) ? 'neo-btn-success' : 'neo-btn-ghost opacity-50 cursor-not-allowed'"
                 @click="handleBuild(ship.type)"
               >
                 <IconsXuongDongTau class="w-4 h-4" />

@@ -1,35 +1,7 @@
 import { requireAuth } from '~~/server/utils/auth'
-
-// Game configuration - Building types and costs
-const BuildingType = {
-  MO_TINH_THACH: 'MO_TINH_THACH',
-  MAY_HAP_THU_NANG_LUONG: 'MAY_HAP_THU_NANG_LUONG',
-  DEN_HON_THACH: 'DEN_HON_THACH',
-  LO_NANG_LUONG: 'LO_NANG_LUONG',
-  KHO_TINH_THACH: 'KHO_TINH_THACH',
-  KHO_NANG_LUONG_VU_TRU: 'KHO_NANG_LUONG_VU_TRU',
-  KHO_HON_THACH: 'KHO_HON_THACH',
-  TRUNG_TAM_CHI_HUY: 'TRUNG_TAM_CHI_HUY',
-  XUONG_DONG_TAU: 'XUONG_DONG_TAU',
-  VIEN_NGHIEN_CUU: 'VIEN_NGHIEN_CUU',
-  NHA_MAY_ROBOT: 'NHA_MAY_ROBOT',
-  PHAO_DAI_PHONG_THU: 'PHAO_DAI_PHONG_THU',
-} as const
-
-const BUILDING_CONFIG: Record<string, { baseCost: { metal: number; crystal: number; deut: number }; factor: number }> = {
-  [BuildingType.MO_TINH_THACH]: { baseCost: { metal: 60, crystal: 15, deut: 0 }, factor: 1.5 },
-  [BuildingType.MAY_HAP_THU_NANG_LUONG]: { baseCost: { metal: 48, crystal: 24, deut: 0 }, factor: 1.6 },
-  [BuildingType.DEN_HON_THACH]: { baseCost: { metal: 225, crystal: 75, deut: 0 }, factor: 1.5 },
-  [BuildingType.LO_NANG_LUONG]: { baseCost: { metal: 75, crystal: 30, deut: 0 }, factor: 1.5 },
-  [BuildingType.NHA_MAY_ROBOT]: { baseCost: { metal: 400, crystal: 120, deut: 200 }, factor: 2 },
-  [BuildingType.XUONG_DONG_TAU]: { baseCost: { metal: 400, crystal: 200, deut: 100 }, factor: 2 },
-  [BuildingType.VIEN_NGHIEN_CUU]: { baseCost: { metal: 200, crystal: 400, deut: 200 }, factor: 2 },
-  [BuildingType.KHO_TINH_THACH]: { baseCost: { metal: 1000, crystal: 0, deut: 0 }, factor: 2 },
-  [BuildingType.KHO_NANG_LUONG_VU_TRU]: { baseCost: { metal: 1000, crystal: 500, deut: 0 }, factor: 2 },
-  [BuildingType.KHO_HON_THACH]: { baseCost: { metal: 1000, crystal: 1000, deut: 0 }, factor: 2 },
-  [BuildingType.TRUNG_TAM_CHI_HUY]: { baseCost: { metal: 20000, crystal: 40000, deut: 0 }, factor: 2 },
-  [BuildingType.PHAO_DAI_PHONG_THU]: { baseCost: { metal: 20000, crystal: 20000, deut: 1000 }, factor: 2 },
-}
+import { BUILDINGS } from '~/config/gameConfig'
+import { checkRequirements } from '~~/server/utils/techTree'
+import { BuildingType } from '~/types/game'
 
 export default defineEventHandler(async (event) => {
   const auth = await requireAuth(event)
@@ -43,7 +15,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  if (!Object.values(BuildingType).includes(buildingType as any)) {
+  if (!BUILDINGS[buildingType as BuildingType]) {
     throw createError({
       statusCode: 400,
       message: 'Invalid building type',
@@ -67,6 +39,25 @@ export default defineEventHandler(async (event) => {
       })
     }
 
+    // Fetch player for requirements check
+    const player = await PlayerSchema.findById(auth.playerId)
+    if (!player) {
+      throw createError({
+        statusCode: 404,
+        message: 'Player not found',
+      })
+    }
+
+    // Check requirements
+    const config = BUILDINGS[buildingType as BuildingType]
+    const reqCheck = checkRequirements(config.requirements, planet, player)
+    if (!reqCheck.met) {
+      throw createError({
+        statusCode: 400,
+        message: `Chưa đủ điều kiện: ${reqCheck.missing.join(', ')}`,
+      })
+    }
+
     // Check if already building
     const existingBuild = await BuildQueueSchema.findOne({
       planet: planetId,
@@ -87,18 +78,10 @@ export default defineEventHandler(async (event) => {
     const targetLevel = currentLevel + 1
 
     // Calculate cost
-    const config = BUILDING_CONFIG[buildingType]
-    if (!config) {
-      throw createError({
-        statusCode: 400,
-        message: 'Unknown building type',
-      })
-    }
-
     const cost = {
-      tinhThach: Math.floor(config.baseCost.metal * Math.pow(config.factor, targetLevel - 1)),
-      nangLuongVuTru: Math.floor(config.baseCost.crystal * Math.pow(config.factor, targetLevel - 1)),
-      honThach: Math.floor(config.baseCost.deut * Math.pow(config.factor, targetLevel - 1)),
+      tinhThach: Math.floor(config.baseCost.tinhThach * Math.pow(config.costFactor, targetLevel - 1)),
+      nangLuongVuTru: Math.floor(config.baseCost.nangLuongVuTru * Math.pow(config.costFactor, targetLevel - 1)),
+      honThach: Math.floor(config.baseCost.honThach * Math.pow(config.costFactor, targetLevel - 1)),
     }
 
     // Check resources

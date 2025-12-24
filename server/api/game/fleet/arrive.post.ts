@@ -1,5 +1,6 @@
 import { requireAuth } from '~~/server/utils/auth'
 import { simulateBattle } from '~~/server/utils/combat'
+import { EspionageReportSchema } from '~~/server/models/espionage-report.schema'
 
 // Process fleet arrival and execute mission
 export default defineEventHandler(async (event) => {
@@ -174,6 +175,13 @@ async function processAttack(fleet: any, targetPlanet: any, attackerId: string) 
     .filter(s => s.remaining > 0 && (s.type.startsWith('PHAO_') || s.type.startsWith('TEN_') || s.type.startsWith('KHIEN_')))
     .map(s => ({ type: s.type, count: s.remaining }))
 
+  // Add debris field
+  if (battleResult.debrisField) {
+    targetPlanet.debris = targetPlanet.debris || { tinhThach: 0, nangLuongVuTru: 0 }
+    targetPlanet.debris.tinhThach += battleResult.debrisField.tinhThach
+    targetPlanet.debris.nangLuongVuTru += battleResult.debrisField.nangLuongVuTru
+  }
+
   await targetPlanet.save()
 
   // Create battle report
@@ -261,15 +269,127 @@ async function processDeploy(fleet: any, targetPlanet: any) {
 }
 
 async function processEspionage(fleet: any, targetPlanet: any) {
-  // TODO: Generate espionage report
-  // For now, just return
-  fleet.isReturning = true
-  fleet.status = 'RETURNING'
-  await fleet.save()
+  if (!targetPlanet) {
+    fleet.isReturning = true
+    fleet.status = 'RETURNING'
+    await fleet.save()
+    return
+  }
+
+  const attacker = await PlayerSchema.findById(fleet.owner)
+  const defender = await PlayerSchema.findById(targetPlanet.owner)
+
+  if (!attacker || !defender) {
+    fleet.isReturning = true
+    fleet.status = 'RETURNING'
+    await fleet.save()
+    return
+  }
+
+  // Calculate espionage level difference
+  const attackerEspionageLevel = attacker.researches?.find((r: any) => r.type === 'CONG_NGHE_GIAN_DIEP')?.level || 0
+  const defenderEspionageLevel = defender.researches?.find((r: any) => r.type === 'CONG_NGHE_GIAN_DIEP')?.level || 0
+  const probeCount = fleet.ships.find((s: any) => s.type === 'TAU_DO_THAM')?.count || 0
+  
+  // Level difference + probe bonus (sqrt of probes)
+  const levelDifference = (attackerEspionageLevel - defenderEspionageLevel) + Math.sqrt(probeCount) - 1
+
+  // Determine information visibility based on level difference
+  const reportData: any = {
+    attacker: attacker._id,
+    defender: defender._id,
+    coordinates: targetPlanet.coordinates,
+    levelDifference,
+    resources: {
+      tinhThach: targetPlanet.resources.tinhThach,
+      nangLuongVuTru: targetPlanet.resources.nangLuongVuTru,
+      honThach: targetPlanet.resources.honThach,
+      dienNang: targetPlanet.resources.dienNang,
+    }
+  }
+
+  // Level diff >= 2: See ships
+  if (levelDifference >= 2) {
+    reportData.ships = targetPlanet.ships
+  }
+
+  // Level diff >= 3: See defenses
+  if (levelDifference >= 3) {
+    reportData.defenses = targetPlanet.defenses
+  }
+
+  // Level diff >= 5: See buildings
+  if (levelDifference >= 5) {
+    reportData.buildings = targetPlanet.buildings
+  }
+
+  // Level diff >= 7: See researches
+  if (levelDifference >= 7) {
+    reportData.researches = defender.researches
+  }
+
+  // Calculate counter-espionage chance (chance of probes being detected and destroyed)
+  // Chance = (Defender Espionage Level - Attacker Espionage Level) * 10% + (Number of ships on planet / 100)%
+  // This is a simplified formula
+  let counterChance = 0
+  if (targetPlanet.ships && targetPlanet.ships.length > 0) {
+    const totalShips = targetPlanet.ships.reduce((sum: number, s: any) => sum + s.count, 0)
+    counterChance = Math.max(0, (defenderEspionageLevel - attackerEspionageLevel) * 10 + (totalShips / 100))
+    counterChance = Math.min(100, counterChance)
+  }
+  
+  reportData.counterEspionageChance = counterChance
+
+  // Create report
+  await EspionageReportSchema.create(reportData)
+
+  // If detected, probes are destroyed (battle simulation could be added here)
+  if (Math.random() * 100 < counterChance) {
+    // Probes destroyed
+    fleet.status = 'DESTROYED'
+    await fleet.save()
+    
+    // Notify attacker of loss
+    // TODO: Send notification
+  } else {
+    // Return safely
+    fleet.isReturning = true
+    fleet.status = 'RETURNING'
+    await fleet.save()
+  }
 }
 
 async function processRecycle(fleet: any, destination: any) {
-  // TODO: Collect debris field resources
+  const targetPlanet = await PlanetSchema.findOne({
+    'coordinates.galaxy': destination.galaxy,
+    'coordinates.system': destination.system,
+    'coordinates.position': destination.position,
+  })
+
+  if (targetPlanet && targetPlanet.debris) {
+    const recyclerCapacity = fleet.ships.reduce((sum: number, s: any) => {
+      if (s.type === 'TAU_TAI_CHE') return sum + (s.count * 20000)
+      return sum
+    }, 0)
+
+    let remainingCapacity = recyclerCapacity
+
+    // Collect Metal
+    const metalToCollect = Math.min(targetPlanet.debris.tinhThach, remainingCapacity)
+    fleet.resources.tinhThach = (fleet.resources.tinhThach || 0) + metalToCollect
+    targetPlanet.debris.tinhThach -= metalToCollect
+    remainingCapacity -= metalToCollect
+
+    // Collect Crystal
+    if (remainingCapacity > 0) {
+      const crystalToCollect = Math.min(targetPlanet.debris.nangLuongVuTru, remainingCapacity)
+      fleet.resources.nangLuongVuTru = (fleet.resources.nangLuongVuTru || 0) + crystalToCollect
+      targetPlanet.debris.nangLuongVuTru -= crystalToCollect
+    }
+
+    await targetPlanet.save()
+  }
+
   fleet.isReturning = true
   fleet.status = 'RETURNING'
   await fleet.save()

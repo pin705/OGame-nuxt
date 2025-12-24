@@ -22,6 +22,7 @@ const navigation = [
   { name: 'Xưởng tàu', shortName: 'Xưởng tàu', href: '/game/shipyard', iconType: 'shipyard' },
   { name: 'Hạm đội', shortName: 'Hạm đội', href: '/game/fleet', iconType: 'fleet' },
   { name: 'Thiên hà', shortName: 'Thiên hà', href: '/game/galaxy', iconType: 'galaxy' },
+  { name: 'Báo cáo', shortName: 'Báo cáo', href: '/game/reports', iconType: 'menu' },
 ]
 
 // Mobile bottom nav (key items only)

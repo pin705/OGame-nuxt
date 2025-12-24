@@ -38,6 +38,12 @@ export const BUILDINGS: Record<BuildingType, BuildingConfig> = {
     baseCost: { tinhThach: 225, nangLuongVuTru: 75, honThach: 0 },
     costFactor: 1.5,
     energyConsumption: 20,
+    requirements: {
+      buildings: [
+        { type: BuildingType.MO_TINH_THACH, level: 10 },
+        { type: BuildingType.MAY_HAP_THU_NANG_LUONG, level: 10 },
+      ],
+    },
   },
   [BuildingType.LO_NANG_LUONG]: {
     type: BuildingType.LO_NANG_LUONG,
@@ -78,6 +84,9 @@ export const BUILDINGS: Record<BuildingType, BuildingConfig> = {
     description: 'Mở khóa các tính năng quản lý và điều khiển hạm đội.',
     baseCost: { tinhThach: 400, nangLuongVuTru: 200, honThach: 100 },
     costFactor: 2,
+    requirements: {
+      buildings: [{ type: BuildingType.VIEN_NGHIEN_CUU, level: 1 }],
+    },
   },
   [BuildingType.XUONG_DONG_TAU]: {
     type: BuildingType.XUONG_DONG_TAU,
@@ -85,6 +94,9 @@ export const BUILDINGS: Record<BuildingType, BuildingConfig> = {
     description: 'Cho phép xây dựng các loại tàu chiến và tàu vận tải.',
     baseCost: { tinhThach: 400, nangLuongVuTru: 200, honThach: 100 },
     costFactor: 2,
+    requirements: {
+      buildings: [{ type: BuildingType.NHA_MAY_ROBOT, level: 2 }],
+    },
   },
   [BuildingType.VIEN_NGHIEN_CUU]: {
     type: BuildingType.VIEN_NGHIEN_CUU,
@@ -106,6 +118,9 @@ export const BUILDINGS: Record<BuildingType, BuildingConfig> = {
     description: 'Cho phép xây dựng các công trình phòng thủ.',
     baseCost: { tinhThach: 1000, nangLuongVuTru: 500, honThach: 0 },
     costFactor: 2,
+    requirements: {
+      buildings: [{ type: BuildingType.XUONG_DONG_TAU, level: 1 }],
+    },
   },
 }
 

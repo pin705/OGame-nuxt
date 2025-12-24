@@ -2,12 +2,14 @@
 import { BuildingType } from '~/types/game'
 import { BUILDINGS } from '~/config/gameConfig'
 import { calculateBuildingCost, formatNumber } from '~/utils/gameFormulas'
+import { checkRequirements } from '~/utils/techTree'
 
 definePageMeta({
   layout: 'game',
 })
 
 const { currentPlanet, buildQueue, upgradeBuilding, processQueue, isLoading } = useGame()
+const { player } = useAuth()
 const countdown = useCountdown()
 
 // Auto-refresh data
@@ -98,6 +100,17 @@ const canAffordBuilding = (type: BuildingType, currentLevel: number) => {
 }
 
 const isAnyUpgrading = computed(() => !!buildQueue.value?.building)
+
+const getBuildingRequirements = (type: BuildingType) => {
+  const config = BUILDINGS[type]
+  if (!config.requirements) return []
+  
+  const planetBuildings = currentPlanet.value?.planet?.buildings || []
+  const playerResearches = player.value?.researches || []
+  
+  const check = checkRequirements(config.requirements, planetBuildings, playerResearches)
+  return check.requirements
+}
 
 const upgradeError = ref<string | null>(null)
 
@@ -196,6 +209,13 @@ const handleUpgrade = async (type: BuildingType) => {
           </div>
         </div>
 
+        <!-- Requirements -->
+        <GameRequirementList
+          v-if="getBuildingRequirements(building.type as BuildingType).length > 0 && !getBuildingRequirements(building.type as BuildingType).every(r => r.met)"
+          :requirements="getBuildingRequirements(building.type as BuildingType)"
+          class="mb-4"
+        />
+
         <!-- Cost Display -->
         <div class="text-xs mb-4 space-y-2">
           <div class="text-neutral-500 uppercase tracking-wider font-display">Chi phí nâng cấp:</div>
@@ -217,11 +237,11 @@ const handleUpgrade = async (type: BuildingType) => {
 
         <button
           class="w-full py-2.5 text-sm font-display font-medium uppercase tracking-wider transition-all"
-          :class="canAffordBuilding(building.type as BuildingType, building.level) && !isAnyUpgrading
+          :class="canAffordBuilding(building.type as BuildingType, building.level) && !isAnyUpgrading && getBuildingRequirements(building.type as BuildingType).every(r => r.met)
             ? 'neo-btn-success'
             : 'neo-btn-ghost opacity-50 cursor-not-allowed'
           "
-          :disabled="!canAffordBuilding(building.type as BuildingType, building.level) || isAnyUpgrading"
+          :disabled="!canAffordBuilding(building.type as BuildingType, building.level) || isAnyUpgrading || !getBuildingRequirements(building.type as BuildingType).every(r => r.met)"
           @click="handleUpgrade(building.type as BuildingType)"
         >
           <span class="flex items-center justify-center gap-2">

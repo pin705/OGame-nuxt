@@ -2,6 +2,7 @@
 import { BUILDINGS } from '~/config/gameConfig'
 import { BuildingType } from '~/types/game'
 import { calculateBuildingCost, formatNumber, formatDuration } from '~/utils/gameFormulas'
+import type { Requirement } from '~/utils/techTree'
 
 interface Props {
   type: BuildingType
@@ -10,6 +11,7 @@ interface Props {
   upgradeEndTime?: Date | null
   canUpgrade?: boolean
   disabled?: boolean
+  requirements?: Requirement[]
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -17,6 +19,7 @@ const props = withDefaults(defineProps<Props>(), {
   upgradeEndTime: null,
   canUpgrade: true,
   disabled: false,
+  requirements: () => [],
 })
 
 const emit = defineEmits<{
@@ -125,12 +128,19 @@ onUnmounted(() => {
         </div>
       </div>
 
+      <!-- Requirements -->
+      <GameRequirementList
+        v-if="requirements && requirements.length > 0 && !requirements.every(r => r.met)"
+        :requirements="requirements"
+        class="mb-3"
+      />
+
       <!-- Upgrade Button -->
       <button
         v-if="!isUpgrading"
-        :disabled="!canUpgrade || disabled"
+        :disabled="!canUpgrade || disabled || (requirements && !requirements.every(r => r.met))"
         class="btn-primary w-full text-sm flex items-center justify-center gap-2"
-        :class="{ 'opacity-50 cursor-not-allowed': !canUpgrade || disabled }"
+        :class="{ 'opacity-50 cursor-not-allowed': !canUpgrade || disabled || (requirements && !requirements.every(r => r.met)) }"
         @click="emit('upgrade', type)"
       >
         <IconsNangCap class="w-4 h-4" />
