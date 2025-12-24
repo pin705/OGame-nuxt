@@ -34,7 +34,7 @@ const labLevel = computed(() => currentPlanet.value?.buildings?.vienNghienCuu ||
 
 // Check build queue for active research
 const researchQueue = computed(() => {
-  return buildQueue.value.find((q: any) => q.type === 'RESEARCH' && !q.isComplete)
+  return buildQueue.value?.find((q) => q.type === 'RESEARCH' && !q.isComplete)
 })
 
 const categories = [
@@ -81,7 +81,7 @@ const handleResearch = async (type: ResearchType, currentLevel: number) => {
   if (isAnyResearching.value || !canAffordResearch(type, currentLevel)) return
   
   researchError.value = null
-  const result = await startResearch(type)
+  const result = await startResearch(type) as { success: boolean; error?: string }
   
   if (!result.success) {
     researchError.value = result.error || 'Nghiên cứu thất bại'

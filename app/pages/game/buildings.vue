@@ -106,7 +106,7 @@ const handleUpgrade = async (type: BuildingType) => {
   if (isAnyUpgrading.value) return
   
   upgradeError.value = null
-  const result = await upgradeBuilding(type)
+  const result = await upgradeBuilding(type) as { success: boolean; error?: string }
   
   if (!result.success) {
     upgradeError.value = result.error || 'Nâng cấp thất bại'

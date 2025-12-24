@@ -45,7 +45,7 @@ const goToSystem = () => {
 
 // Check if planet is owned by current player
 const isOwnPlanet = (slot: any) => {
-  return slot.owner?.id === player.value?.id || slot.owner?.username === player.value?.username
+  return slot.owner?._id === player.value?._id || slot.owner?.username === player.value?.username
 }
 </script>
 

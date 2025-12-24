@@ -5,32 +5,32 @@ definePageMeta({
 
 const features = [
   {
-    icon: 'mdi:office-building',
+    iconType: 'building',
     title: 'Xây Dựng Căn Cứ',
     description: 'Xây dựng các công trình khai thác tài nguyên, nghiên cứu và sản xuất tàu chiến.',
   },
   {
-    icon: 'mdi:flask',
+    iconType: 'research',
     title: 'Nghiên Cứu Công Nghệ',
     description: 'Nghiên cứu các công nghệ tiên tiến để nâng cao sức mạnh quân sự.',
   },
   {
-    icon: 'mdi:rocket-launch',
+    iconType: 'shipyard',
     title: 'Chế Tạo Hạm Đội',
     description: 'Chế tạo đội tàu chiến hùng mạnh từ Tiểu Chiến Hạm đến Tử Thần Tinh.',
   },
   {
-    icon: 'mdi:sword-cross',
+    iconType: 'attack',
     title: 'Chiến Đấu Chinh Phục',
     description: 'Tấn công hành tinh địch, cướp tài nguyên và mở rộng lãnh thổ.',
   },
   {
-    icon: 'mdi:account-group',
+    iconType: 'player',
     title: 'Liên Minh',
     description: 'Gia nhập hoặc thành lập liên minh để cùng nhau chinh phục vũ trụ.',
   },
   {
-    icon: 'mdi:galaxy',
+    iconType: 'galaxy',
     title: 'Khám Phá Thiên Hà',
     description: 'Khám phá 9 thiên hà với hàng nghìn hệ sao và hành tinh.',
   },
@@ -49,7 +49,7 @@ const features = [
       <div class="relative z-10 container mx-auto px-4 text-center">
         <div class="mb-8">
           <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary-500/10 border border-primary-500/30 mb-6">
-            <Icon name="mdi:star-four-points" class="text-primary-400" />
+            <IconsTenLua class="w-5 h-5 text-primary-400" />
             <span class="text-sm text-primary-300">Dựa trên tiểu thuyết Thôn Phệ Tinh Không</span>
           </div>
           
@@ -64,12 +64,12 @@ const features = [
           </p>
 
           <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <NuxtLink to="/register" class="btn-primary text-lg px-8 py-3">
-              <Icon name="mdi:rocket-launch" />
+            <NuxtLink to="/register" class="btn-primary text-lg px-8 py-3 flex items-center gap-2">
+              <IconsTenLua class="w-5 h-5" />
               Bắt Đầu Chinh Phục
             </NuxtLink>
-            <NuxtLink to="/login" class="btn-outline text-lg px-8 py-3">
-              <Icon name="mdi:login" />
+            <NuxtLink to="/login" class="btn-outline text-lg px-8 py-3 flex items-center gap-2">
+              <IconsNguoiChoi class="w-5 h-5" />
               Đăng Nhập
             </NuxtLink>
           </div>
@@ -93,7 +93,7 @@ const features = [
 
         <!-- Scroll indicator -->
         <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
-          <Icon name="mdi:chevron-double-down" class="text-3xl text-slate-500" />
+          <IconsMuiTen class="w-8 h-8 text-slate-500 rotate-90" />
         </div>
       </div>
     </section>
@@ -117,7 +117,12 @@ const features = [
             class="glass-card-hover p-6"
           >
             <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-primary-500/20 to-secondary-500/20 flex items-center justify-center mb-4">
-              <Icon :name="feature.icon" class="text-2xl text-primary-400" />
+              <IconsMoKhoang v-if="feature.iconType === 'building'" class="w-6 h-6 text-primary-400" />
+              <IconsNghienCuu v-else-if="feature.iconType === 'research'" class="w-6 h-6 text-primary-400" />
+              <IconsXuongDongTau v-else-if="feature.iconType === 'shipyard'" class="w-6 h-6 text-primary-400" />
+              <IconsTanCong v-else-if="feature.iconType === 'attack'" class="w-6 h-6 text-primary-400" />
+              <IconsNguoiChoi v-else-if="feature.iconType === 'player'" class="w-6 h-6 text-primary-400" />
+              <IconsThienHa v-else-if="feature.iconType === 'galaxy'" class="w-6 h-6 text-primary-400" />
             </div>
             <h3 class="font-display font-semibold text-lg mb-2">{{ feature.title }}</h3>
             <p class="text-sm text-slate-400">{{ feature.description }}</p>
@@ -133,7 +138,7 @@ const features = [
           <div class="absolute inset-0 bg-gradient-to-r from-primary-500/10 to-secondary-500/10" />
           
           <div class="relative z-10">
-            <Icon name="mdi:rocket-launch-outline" class="text-6xl text-primary-400 mb-6" />
+            <IconsTenLua class="w-16 h-16 text-primary-400 mx-auto mb-6" />
             <h2 class="text-2xl md:text-3xl font-display font-bold mb-4">
               Sẵn Sàng Chinh Phục Vũ Trụ?
             </h2>

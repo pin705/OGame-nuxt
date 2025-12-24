@@ -4,8 +4,6 @@ interface Props {
   size?: 'sm' | 'md' | 'lg'
   loading?: boolean
   disabled?: boolean
-  icon?: string
-  iconPosition?: 'left' | 'right'
   fullWidth?: boolean
 }
 
@@ -14,7 +12,6 @@ const props = withDefaults(defineProps<Props>(), {
   size: 'md',
   loading: false,
   disabled: false,
-  iconPosition: 'left',
   fullWidth: false,
 })
 
@@ -50,11 +47,9 @@ const sizeClasses = computed(() => {
       { 'w-full': fullWidth },
     ]"
   >
-    <Icon v-if="loading" name="mdi:loading" class="animate-spin" />
+    <IconsTaiDang v-if="loading" class="w-5 h-5 animate-spin" />
     <template v-else>
-      <Icon v-if="icon && iconPosition === 'left'" :name="icon" />
       <slot />
-      <Icon v-if="icon && iconPosition === 'right'" :name="icon" />
     </template>
   </button>
 </template>

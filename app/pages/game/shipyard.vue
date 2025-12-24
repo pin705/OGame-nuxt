@@ -29,13 +29,15 @@ onUnmounted(() => {
 
 // Get ships from planet
 const ships = computed(() => {
-  const planetShips = currentPlanet.value?.planet?.ships || []
+  const planetShips = currentPlanet.value?.planet?.ships || {}
   // All ship types with current count
   return Object.values(ShipType).map(type => {
-    const existing = planetShips.find((s: any) => s.type === type)
+    const shipQueue = buildQueue.value?.find((q: any) => q.type === 'SHIP' && q.shipType === type && !q.isComplete)
     return {
       type,
-      count: existing?.count || 0,
+      count: (planetShips as Record<string, number>)[type] || 0,
+      isBuilding: !!shipQueue,
+      buildCount: shipQueue?.count || 0,
     }
   })
 })
@@ -108,7 +110,7 @@ const handleBuild = async (type: ShipType) => {
   if (count < 1 || !canAffordShip(type, count)) return
   
   buildError.value = null
-  const result = await buildShips(type, count)
+  const result = await buildShips(type, count) as { success: boolean; error?: string }
   
   if (!result.success) {
     buildError.value = result.error || 'Chế tạo thất bại'

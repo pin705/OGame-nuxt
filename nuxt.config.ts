@@ -10,7 +10,6 @@ export default defineNuxtConfig({
   modules: [
     '@nuxtjs/tailwindcss',
     'nuxt-mongoose',
-    '@nuxt/icon',
     '@nuxt/eslint',
   ],
 

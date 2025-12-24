@@ -10,6 +10,7 @@ This is a space strategy game inspired by OGame, with storyline elements from th
 - **Authentication**: nuxt-auth-utils or custom JWT
 - **State Management**: Vue composables and Pinia if needed
 - Icon cho game phải tự custom svg icon để sử dụng icon phải phù hợp với chủ đề vũ trụ. phù hợp với tính huống cho game
+- không sử dụng icon sẵn icon emoji icon unicode, icon nhựa 
 
 ## Code Style Guidelines
 

@@ -1,13 +1,14 @@
 <script setup lang="ts">
 const route = useRoute()
 
+// Navigation items with component references
 const navigation = [
-  { name: 'Tổng quan', href: '/game/overview', icon: 'mdi:view-dashboard' },
-  { name: 'Công trình', href: '/game/buildings', icon: 'mdi:office-building' },
-  { name: 'Nghiên cứu', href: '/game/research', icon: 'mdi:flask' },
-  { name: 'Xưởng tàu', href: '/game/shipyard', icon: 'mdi:rocket-launch' },
-  { name: 'Hạm đội', href: '/game/fleet', icon: 'mdi:ship-wheel' },
-  { name: 'Thiên hà', href: '/game/galaxy', icon: 'mdi:galaxy' },
+  { name: 'Tổng quan', href: '/game/overview', iconType: 'dashboard' },
+  { name: 'Công trình', href: '/game/buildings', iconType: 'building' },
+  { name: 'Nghiên cứu', href: '/game/research', iconType: 'research' },
+  { name: 'Xưởng tàu', href: '/game/shipyard', iconType: 'shipyard' },
+  { name: 'Hạm đội', href: '/game/fleet', iconType: 'fleet' },
+  { name: 'Thiên hà', href: '/game/galaxy', iconType: 'galaxy' },
 ]
 
 const isSidebarOpen = ref(true)
@@ -26,7 +27,8 @@ const isActiveRoute = (href: string) => route.path === href
       class="fixed top-4 left-4 z-50 lg:hidden glass-card p-2"
       @click="isMobileMenuOpen = !isMobileMenuOpen"
     >
-      <Icon :name="isMobileMenuOpen ? 'mdi:close' : 'mdi:menu'" class="text-2xl" />
+      <IconsDong v-if="isMobileMenuOpen" class="w-6 h-6" />
+      <IconsMenu v-else class="w-6 h-6" />
     </button>
 
     <!-- Sidebar -->
@@ -42,7 +44,7 @@ const isActiveRoute = (href: string) => route.path === href
         <div class="p-4 border-b border-space-700">
           <NuxtLink to="/game/overview" class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center">
-              <Icon name="mdi:rocket-launch-outline" class="text-2xl text-white" />
+              <IconsTenLua class="w-6 h-6 text-white" />
             </div>
             <div>
               <h1 class="font-display font-bold text-lg text-gradient">
@@ -67,7 +69,12 @@ const isActiveRoute = (href: string) => route.path === href
             "
             @click="isMobileMenuOpen = false"
           >
-            <Icon :name="item.icon" class="text-xl" />
+            <IconsTrungTamChiHuy v-if="item.iconType === 'dashboard'" class="w-5 h-5" />
+            <IconsMoKhoang v-else-if="item.iconType === 'building'" class="w-5 h-5" />
+            <IconsNghienCuu v-else-if="item.iconType === 'research'" class="w-5 h-5" />
+            <IconsXuongDongTau v-else-if="item.iconType === 'shipyard'" class="w-5 h-5" />
+            <IconsHamDoi v-else-if="item.iconType === 'fleet'" class="w-5 h-5" />
+            <IconsThienHa v-else-if="item.iconType === 'galaxy'" class="w-5 h-5" />
             <span class="font-medium">{{ item.name }}</span>
           </NuxtLink>
         </nav>
@@ -78,13 +85,13 @@ const isActiveRoute = (href: string) => route.path === href
             to="/game/settings"
             class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-400 hover:bg-space-700 hover:text-slate-200 transition-colors"
           >
-            <Icon name="mdi:cog" class="text-xl" />
+            <IconsCaiDat class="w-5 h-5" />
             <span>Cài đặt</span>
           </NuxtLink>
           <button
             class="flex items-center gap-3 px-3 py-2 rounded-lg text-red-400 hover:bg-red-500/10 transition-colors w-full mt-1"
           >
-            <Icon name="mdi:logout" class="text-xl" />
+            <IconsQuayLai class="w-5 h-5" />
             <span>Đăng xuất</span>
           </button>
         </div>

@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ShipType, FleetMission } from '~/types/game'
+import type { ShipType } from '~/types/game'
+import { FleetMission } from '~/types/game'
 import { SHIPS } from '~/config/gameConfig'
 import { formatNumber, formatCoordinates } from '~/utils/gameFormulas'
 
@@ -84,12 +85,12 @@ const handleSendFleet = async () => {
       }))
     
     const result = await sendFleet({
+      originPlanetId: currentPlanet.value?.planet?._id || '',
       ships,
       destination: dispatch.destination,
       mission: dispatch.mission,
-      speed: dispatch.speed,
       resources: dispatch.mission === FleetMission.VAN_CHUYEN ? dispatch.resources : undefined,
-    })
+    }) as { success: boolean; error?: string }
     
     if (!result.success) {
       fleetError.value = result.error || 'Gửi hạm đội thất bại'
@@ -106,7 +107,7 @@ const handleSendFleet = async () => {
 }
 
 const handleRecallFleet = async (fleetId: string) => {
-  const result = await recallFleet(fleetId)
+  const result = await recallFleet(fleetId) as { success: boolean; error?: string }
   if (!result.success) {
     fleetError.value = result.error || 'Thu hồi hạm đội thất bại'
     setTimeout(() => {
@@ -134,7 +135,7 @@ const handleRecallFleet = async (fleetId: string) => {
 
     <!-- Loading -->
     <div v-if="(isLoading || fleetsLoading) && !currentPlanet" class="flex items-center justify-center py-12">
-      <div class="animate-spin w-8 h-8 border-2 border-primary-500 border-t-transparent rounded-full"></div>
+      <div class="animate-spin w-8 h-8 border-2 border-primary-500 border-t-transparent rounded-full" />
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -375,7 +376,7 @@ const handleRecallFleet = async (fleetId: string) => {
                   :key="ship.type"
                   class="text-xs px-2 py-1 rounded bg-space-700 text-slate-300"
                 >
-                  {{ SHIPS[ship.type]?.name || ship.type }} x{{ ship.count }}
+                  {{ SHIPS[ship.type as ShipType]?.name || ship.type }} x{{ ship.count }}
                 </span>
               </div>
             </div>

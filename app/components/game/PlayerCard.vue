@@ -45,7 +45,7 @@ const rankColor = computed(() => {
           class="w-14 h-14 rounded-full bg-gradient-to-br flex items-center justify-center"
           :class="rankColor"
         >
-          <Icon name="mdi:account-circle" class="text-4xl text-white" />
+          <IconsNguoiChoi class="w-10 h-10 text-white" />
         </div>
         <div
           v-if="isOnline"

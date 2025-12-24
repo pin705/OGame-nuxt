@@ -55,14 +55,14 @@ const fieldStatusColor = computed(() => {
         <div
           class="w-16 h-16 rounded-full bg-gradient-to-br from-primary-600 to-secondary-700 flex items-center justify-center overflow-hidden"
         >
-          <Icon name="mdi:earth" class="text-4xl text-white/80" />
+          <IconsHanhTinh class="w-10 h-10 text-white/80" />
         </div>
         <div
           v-if="planet.isHomePlanet"
           class="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-accent-500 flex items-center justify-center"
           title="Hành tinh mẫu"
         >
-          <Icon name="mdi:home" class="text-sm text-white" />
+          <IconsTrungTamChiHuy class="w-4 h-4 text-white" />
         </div>
       </div>
 
@@ -86,11 +86,11 @@ const fieldStatusColor = computed(() => {
 
         <div class="flex items-center gap-4 mt-2 text-xs text-slate-500">
           <span class="flex items-center gap-1">
-            <Icon name="mdi:resize" />
+            <IconsThongTin class="w-3 h-3" />
             {{ planet.diameter.toLocaleString() }} km
           </span>
           <span class="flex items-center gap-1">
-            <Icon name="mdi:thermometer" />
+            <IconsDienNang class="w-3 h-3" />
             {{ planet.temperature }}°C
           </span>
         </div>

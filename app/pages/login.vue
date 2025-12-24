@@ -44,7 +44,7 @@ const handleLogin = async () => {
       <div class="text-center mb-8">
         <NuxtLink to="/" class="inline-block">
           <div class="w-16 h-16 rounded-xl bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center mx-auto mb-4">
-            <Icon name="mdi:rocket-launch-outline" class="text-4xl text-white" />
+            <IconsTenLua class="w-10 h-10 text-white" />
           </div>
         </NuxtLink>
         <h1 class="text-2xl font-display font-bold text-gradient">Thôn Phệ Tinh Không</h1>
@@ -59,7 +59,6 @@ const handleLogin = async () => {
             label="Email"
             type="email"
             placeholder="warrior@universe.com"
-            icon="mdi:email"
             required
           />
 
@@ -68,7 +67,6 @@ const handleLogin = async () => {
             label="Mật khẩu"
             type="password"
             placeholder="••••••••"
-            icon="mdi:lock"
             required
           />
 
@@ -86,15 +84,14 @@ const handleLogin = async () => {
             {{ error }}
           </div>
 
-          <UiButton
+          <button
             type="submit"
-            variant="primary"
-            full-width
-            :loading="isLoading"
+            class="btn-primary w-full flex items-center justify-center gap-2"
+            :disabled="isLoading"
           >
-            <Icon name="mdi:login" />
-            Đăng Nhập
-          </UiButton>
+            <IconsNguoiChoi class="w-5 h-5" />
+            {{ isLoading ? 'Đang đăng nhập...' : 'Đăng Nhập' }}
+          </button>
         </form>
 
         <template #footer>
@@ -110,10 +107,10 @@ const handleLogin = async () => {
       <!-- Demo Login -->
       <div class="mt-6 text-center">
         <p class="text-sm text-slate-500 mb-3">Hoặc dùng thử với tài khoản demo</p>
-        <UiButton variant="outline" @click="navigateTo('/game/overview')">
-          <Icon name="mdi:play" />
+        <button class="btn-outline flex items-center justify-center gap-2 mx-auto" @click="navigateTo('/game/overview')">
+          <IconsTenLua class="w-5 h-5" />
           Chơi Demo
-        </UiButton>
+        </button>
       </div>
     </div>
   </div>

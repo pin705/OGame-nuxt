@@ -61,7 +61,7 @@ const handleRegister = async () => {
       <div class="text-center mb-8">
         <NuxtLink to="/" class="inline-block">
           <div class="w-16 h-16 rounded-xl bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center mx-auto mb-4">
-            <Icon name="mdi:rocket-launch-outline" class="text-4xl text-white" />
+            <IconsTenLua class="w-10 h-10 text-white" />
           </div>
         </NuxtLink>
         <h1 class="text-2xl font-display font-bold text-gradient">Tạo Tài Khoản Mới</h1>
@@ -76,7 +76,6 @@ const handleRegister = async () => {
             label="Tên Chiến Sĩ"
             type="text"
             placeholder="La Phong"
-            icon="mdi:account"
             required
           />
 
@@ -85,7 +84,6 @@ const handleRegister = async () => {
             label="Email"
             type="email"
             placeholder="warrior@universe.com"
-            icon="mdi:email"
             required
           />
 
@@ -94,7 +92,6 @@ const handleRegister = async () => {
             label="Mật khẩu"
             type="password"
             placeholder="••••••••"
-            icon="mdi:lock"
             required
           />
 
@@ -103,7 +100,6 @@ const handleRegister = async () => {
             label="Xác nhận mật khẩu"
             type="password"
             placeholder="••••••••"
-            icon="mdi:lock-check"
             required
           />
 
@@ -118,15 +114,15 @@ const handleRegister = async () => {
             <a href="#" class="text-primary-400">Chính sách bảo mật</a>.
           </div>
 
-          <UiButton
+          <button
             type="submit"
-            variant="primary"
-            full-width
-            :loading="isLoading"
+            class="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-gradient-to-r from-primary-500 to-secondary-500 text-white font-semibold hover:from-primary-400 hover:to-secondary-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            :disabled="isLoading"
           >
-            <Icon name="mdi:rocket-launch" />
-            Tạo Tài Khoản & Bắt Đầu
-          </UiButton>
+            <IconsTaiDang v-if="isLoading" class="w-5 h-5 animate-spin" />
+            <IconsTenLua v-else class="w-5 h-5" />
+            {{ isLoading ? 'Đang tạo...' : 'Tạo Tài Khoản & Bắt Đầu' }}
+          </button>
         </form>
 
         <template #footer>
@@ -144,15 +140,15 @@ const handleRegister = async () => {
         <h3 class="text-sm font-semibold text-slate-300 mb-3">Khi đăng ký, bạn nhận được:</h3>
         <ul class="space-y-2 text-sm text-slate-400">
           <li class="flex items-center gap-2">
-            <Icon name="mdi:check-circle" class="text-green-400" />
+            <IconsHoanThanh class="w-4 h-4 text-green-400" />
             1 Hành tinh với 163 ô đất
           </li>
           <li class="flex items-center gap-2">
-            <Icon name="mdi:check-circle" class="text-green-400" />
+            <IconsHoanThanh class="w-4 h-4 text-green-400" />
             500 Tinh Thạch + 500 Năng Lượng Vũ Trụ
           </li>
           <li class="flex items-center gap-2">
-            <Icon name="mdi:check-circle" class="text-green-400" />
+            <IconsHoanThanh class="w-4 h-4 text-green-400" />
             Hướng dẫn chi tiết cho người mới
           </li>
         </ul>
