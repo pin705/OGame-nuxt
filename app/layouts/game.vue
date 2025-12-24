@@ -1,5 +1,17 @@
 <script setup lang="ts">
+import { BuildingType } from '~/types/game'
+import { 
+  calculateMetalProduction, 
+  calculateCrystalProduction, 
+  calculateDeuteriumProduction, 
+  calculateEnergyProduction,
+  calculateEnergyConsumption 
+} from '~/utils/gameFormulas'
+
 const route = useRoute()
+const router = useRouter()
+const auth = useAuth()
+const game = useGame()
 
 // Navigation items with component references
 const navigation = [
@@ -13,8 +25,70 @@ const navigation = [
 
 const isSidebarOpen = ref(true)
 const isMobileMenuOpen = ref(false)
+const isInitialized = ref(false)
 
 const isActiveRoute = (href: string) => route.path === href
+
+// Initialize game on mount
+onMounted(async () => {
+  await auth.init()
+  if (!auth.isAuthenticated.value) {
+    router.push('/login')
+    return
+  }
+  await game.initGame()
+  isInitialized.value = true
+})
+
+// Resources from current planet
+const resources = computed(() => {
+  const planet = game.currentPlanet.value?.planet
+  if (!planet) return { tinhThach: 0, nangLuongVuTru: 0, honThach: 0, dienNang: 0, dienNangMax: 0 }
+  
+  const buildings = planet.buildings || []
+  const solarPlant = buildings.find((b: any) => b.type === BuildingType.LO_NANG_LUONG)?.level || 0
+  const metalMine = buildings.find((b: any) => b.type === BuildingType.MO_TINH_THACH)?.level || 0
+  const crystalMine = buildings.find((b: any) => b.type === BuildingType.MAY_HAP_THU_NANG_LUONG)?.level || 0
+  const deutMine = buildings.find((b: any) => b.type === BuildingType.DEN_HON_THACH)?.level || 0
+  
+  const energyProduced = calculateEnergyProduction(solarPlant)
+  const energyUsed = 
+    calculateEnergyConsumption(BuildingType.MO_TINH_THACH, metalMine) + 
+    calculateEnergyConsumption(BuildingType.MAY_HAP_THU_NANG_LUONG, crystalMine) + 
+    calculateEnergyConsumption(BuildingType.DEN_HON_THACH, deutMine)
+  
+  return {
+    tinhThach: planet.resources?.tinhThach || 0,
+    nangLuongVuTru: planet.resources?.nangLuongVuTru || 0,
+    honThach: planet.resources?.honThach || 0,
+    dienNang: energyProduced - energyUsed,
+    dienNangMax: energyProduced,
+  }
+})
+
+// Production rates
+const production = computed(() => {
+  const planet = game.currentPlanet.value?.planet
+  if (!planet) return { tinhThach: 0, nangLuongVuTru: 0, honThach: 0 }
+  
+  const buildings = planet.buildings || []
+  const metalMine = buildings.find((b: any) => b.type === BuildingType.MO_TINH_THACH)?.level || 0
+  const crystalMine = buildings.find((b: any) => b.type === BuildingType.MAY_HAP_THU_NANG_LUONG)?.level || 0
+  const deutMine = buildings.find((b: any) => b.type === BuildingType.DEN_HON_THACH)?.level || 0
+  const temperature = planet.temperature || 15
+
+  return {
+    tinhThach: calculateMetalProduction(metalMine),
+    nangLuongVuTru: calculateCrystalProduction(crystalMine),
+    honThach: calculateDeuteriumProduction(deutMine, temperature),
+  }
+})
+
+// Logout handler
+const handleLogout = async () => {
+  await auth.logout()
+  router.push('/login')
+}
 </script>
 
 <template>
@@ -90,6 +164,7 @@ const isActiveRoute = (href: string) => route.path === href
           </NuxtLink>
           <button
             class="flex items-center gap-3 px-3 py-2 rounded-lg text-red-400 hover:bg-red-500/10 transition-colors w-full mt-1"
+            @click="handleLogout"
           >
             <IconsQuayLai class="w-5 h-5" />
             <span>Đăng xuất</span>
@@ -107,27 +182,33 @@ const isActiveRoute = (href: string) => route.path === href
 
     <!-- Main content -->
     <main class="lg:ml-64 relative z-10 min-h-screen">
-      <!-- Top bar with resources -->
-      <header class="sticky top-0 z-20 p-4 bg-space-900/80 backdrop-blur-md border-b border-space-700">
-        <GameResourceBar
-          :tinh-thach="1000000"
-          :nang-luong-vu-tru="500000"
-          :hon-thach="250000"
-          :dien-nang="150"
-          :dien-nang-max="200"
-          show-production
-          :production="{
-            tinhThach: 5000,
-            nangLuongVuTru: 2500,
-            honThach: 1000,
-          }"
-        />
-      </header>
-
-      <!-- Page content -->
-      <div class="p-4 md:p-6">
-        <slot />
+      <!-- Loading state -->
+      <div v-if="!isInitialized" class="flex items-center justify-center min-h-screen">
+        <div class="text-center">
+          <IconsTaiDang class="w-12 h-12 animate-spin text-primary-400 mx-auto mb-4" />
+          <p class="text-slate-400">Đang tải dữ liệu...</p>
+        </div>
       </div>
+      
+      <template v-else>
+        <!-- Top bar with resources -->
+        <header class="sticky top-0 z-20 p-4 bg-space-900/80 backdrop-blur-md border-b border-space-700">
+          <GameResourceBar
+            :tinh-thach="resources.tinhThach"
+            :nang-luong-vu-tru="resources.nangLuongVuTru"
+            :hon-thach="resources.honThach"
+            :dien-nang="resources.dienNang"
+            :dien-nang-max="resources.dienNangMax"
+            show-production
+            :production="production"
+          />
+        </header>
+
+        <!-- Page content -->
+        <div class="p-4 md:p-6">
+          <slot />
+        </div>
+      </template>
     </main>
   </div>
 </template>

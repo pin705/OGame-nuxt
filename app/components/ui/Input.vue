@@ -7,7 +7,6 @@ interface Props {
   error?: string
   disabled?: boolean
   required?: boolean
-  icon?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -37,10 +36,6 @@ const inputId = `input-${Math.random().toString(36).substr(2, 9)}`
     </label>
     
     <div class="relative">
-      <div v-if="icon" class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-        <Icon :name="icon" class="text-slate-500" />
-      </div>
-      
       <input
         :id="inputId"
         v-model="inputValue"
@@ -50,7 +45,6 @@ const inputId = `input-${Math.random().toString(36).substr(2, 9)}`
         :required="required"
         class="input"
         :class="{
-          'pl-10': icon,
           'input-error': error,
         }"
       >

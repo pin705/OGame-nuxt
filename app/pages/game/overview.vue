@@ -14,14 +14,12 @@ definePageMeta({
 })
 
 const { player } = useAuth()
-const { currentPlanet, buildQueue, fetchPlanet, fetchBuildQueue, processQueue, isLoading } = useGame()
+const { currentPlanet, buildQueue, processQueue, isLoading } = useGame()
 
 // Auto-refresh data
 const refreshInterval = ref<NodeJS.Timeout | null>(null)
 
 onMounted(async () => {
-  await Promise.all([fetchPlanet(), fetchBuildQueue()])
-  
   // Process queue and refresh every 10 seconds
   refreshInterval.value = setInterval(async () => {
     await processQueue()

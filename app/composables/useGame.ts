@@ -1,40 +1,70 @@
 // Composable for managing game data across the application
 export const useGame = () => {
+  const auth = useAuth()
   const currentPlanetId = useState<string | null>('currentPlanetId', () => null)
   const currentPlanet = useState<any>('currentPlanet', () => null)
   const planets = useState<any[]>('planets', () => [])
   const buildQueue = useState<any>('buildQueue', () => null)
   const isLoading = useState<boolean>('gameLoading', () => false)
+  const error = useState<string | null>('gameError', () => null)
+
+  // Initialize game - get player's planets and set current planet
+  const initGame = async () => {
+    // First ensure auth is initialized
+    if (!auth.isAuthenticated.value) {
+      await auth.init()
+    }
+
+    // Get home planet from auth
+    if (auth.homePlanet.value?._id) {
+      currentPlanetId.value = auth.homePlanet.value._id.toString()
+    }
+
+    // Fetch planets
+    await fetchPlanets()
+
+    // Fetch current planet details
+    if (currentPlanetId.value) {
+      await fetchPlanet()
+      await fetchBuildQueue()
+    }
+  }
 
   // Fetch all player's planets
   const fetchPlanets = async () => {
     try {
-      const { data } = await useFetch('/api/game/planets')
-      if (data.value?.success) {
-        planets.value = data.value.data.planets
+      const response = await $fetch('/api/game/planets')
+      if (response?.success) {
+        planets.value = response.data.planets
         // Set current planet if not set
         if (!currentPlanetId.value && planets.value.length > 0) {
-          currentPlanetId.value = planets.value[0].id
+          currentPlanetId.value = planets.value[0]._id?.toString() || planets.value[0].id
         }
       }
-    } catch (error) {
-      console.error('Failed to fetch planets:', error)
+    } catch (err: any) {
+      console.error('Failed to fetch planets:', err)
+      error.value = err.message || 'Failed to fetch planets'
     }
   }
 
   // Fetch specific planet details
   const fetchPlanet = async (planetId?: string) => {
     const id = planetId || currentPlanetId.value
-    if (!id) return
+    if (!id) {
+      error.value = 'No planet ID available'
+      return
+    }
 
     isLoading.value = true
+    error.value = null
     try {
-      const { data } = await useFetch(`/api/game/planet/${id}`)
-      if (data.value?.success) {
-        currentPlanet.value = data.value.data
+      const response = await $fetch(`/api/game/planet/${id}`)
+      if (response?.success) {
+        currentPlanet.value = response.data
       }
-    } catch (error) {
-      console.error('Failed to fetch planet:', error)
+    } catch (err: any) {
+      console.error('Failed to fetch planet:', err)
+      error.value = err.message || 'Failed to fetch planet'
     } finally {
       isLoading.value = false
     }
@@ -46,12 +76,12 @@ export const useGame = () => {
     if (!id) return
 
     try {
-      const { data } = await useFetch(`/api/game/queue?planetId=${id}`)
-      if (data.value?.success) {
-        buildQueue.value = data.value.data
+      const response = await $fetch(`/api/game/queue?planetId=${id}`)
+      if (response?.success) {
+        buildQueue.value = response.data
       }
-    } catch (error) {
-      console.error('Failed to fetch build queue:', error)
+    } catch (err: any) {
+      console.error('Failed to fetch build queue:', err)
     }
   }
 
@@ -164,8 +194,10 @@ export const useGame = () => {
     planets,
     buildQueue,
     isLoading,
+    error,
     
     // Actions
+    initGame,
     fetchPlanets,
     fetchPlanet,
     fetchBuildQueue,

@@ -7,9 +7,9 @@ export const useFleet = () => {
   const fetchFleets = async () => {
     isLoading.value = true
     try {
-      const { data } = await useFetch('/api/game/fleet')
-      if (data.value?.success) {
-        fleets.value = data.value.data.fleets
+      const response = await $fetch('/api/game/fleet')
+      if (response?.success) {
+        fleets.value = response.data.fleets
       }
     } catch (error) {
       console.error('Failed to fetch fleets:', error)

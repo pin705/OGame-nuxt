@@ -18,8 +18,8 @@ onMounted(() => {
 
 // Available ships on current planet
 const availableShips = computed(() => {
-  if (!currentPlanet.value?.ships) return []
-  const ships = currentPlanet.value.ships as Record<string, number>
+  const ships = currentPlanet.value?.planet?.ships as Record<string, number> | undefined
+  if (!ships) return []
   return Object.entries(ships)
     .filter(([_, count]) => count > 0)
     .map(([type, count]) => ({

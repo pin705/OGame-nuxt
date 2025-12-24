@@ -13,6 +13,7 @@ This is a space strategy game inspired by OGame, with storyline elements from th
 - không sử dụng icon sẵn icon emoji icon unicode, icon nhựa 
 
 ## Code Style Guidelines
+"Refer to style.md to build a vue component for the Planet Dashboard. Ensure it uses the color palette and glassmorphism style defined there."
 
 ### TypeScript
 - Use strict TypeScript with proper type definitions

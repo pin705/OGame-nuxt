@@ -12,11 +12,11 @@ export const useGalaxy = () => {
 
     isLoading.value = true
     try {
-      const { data } = await useFetch(`/api/game/galaxy?galaxy=${g}&system=${s}`)
-      if (data.value?.success) {
+      const response = await $fetch(`/api/game/galaxy?galaxy=${g}&system=${s}`)
+      if (response?.success) {
         currentGalaxy.value = g
         currentSystem.value = s
-        systemView.value = data.value.data.positions
+        systemView.value = response.data.positions
       }
     } catch (error) {
       console.error('Failed to fetch galaxy view:', error)

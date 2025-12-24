@@ -101,7 +101,7 @@ export const useAuth = () => {
    */
   const logout = async () => {
     try {
-      await useFetch('/api/auth/logout', {
+      await $fetch('/api/auth/logout', {
         method: 'POST',
         credentials: 'include',
       })
@@ -113,8 +113,6 @@ export const useAuth = () => {
     state.value.player = null
     state.value.homePlanet = null
     state.value.token = null
-
-    await router.push('/login')
   }
 
   /**
