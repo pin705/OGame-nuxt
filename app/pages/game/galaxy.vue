@@ -54,48 +54,48 @@ const isOwnPlanet = (slot: any) => {
     <!-- Header -->
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
       <div>
-        <h1 class="text-2xl font-display font-bold">Thiên Hà</h1>
-        <p class="text-slate-400">Khám phá vũ trụ và tìm kiếm mục tiêu</p>
+        <h1 class="text-2xl font-display font-bold text-gradient-cyan">Thiên Hà</h1>
+        <p class="text-neutral-500 mt-1">Khám phá vũ trụ và tìm kiếm mục tiêu</p>
       </div>
       
       <!-- Navigation Controls -->
       <div class="flex items-center gap-2">
         <button
-          class="btn-ghost"
+          class="neo-btn-ghost"
           @click="navigateSystem('prev')"
         >
           <IconsMuiTen class="w-5 h-5 rotate-180" />
         </button>
         
-        <div class="flex items-center gap-2 glass-card px-4 py-2">
-          <label class="text-sm text-slate-400">Thiên hà:</label>
+        <div class="flex items-center gap-2 neo-card px-4 py-2">
+          <label class="text-sm text-neutral-500">Thiên hà:</label>
           <select
             v-model="currentGalaxy"
-            class="bg-space-700 border-none rounded px-2 py-1 text-slate-200 focus:ring-1 focus:ring-primary-500"
+            class="neo-input py-1 px-2 w-16"
             @change="goToSystem"
           >
             <option v-for="g in 9" :key="g" :value="g">{{ g }}</option>
           </select>
           
-          <label class="text-sm text-slate-400 ml-2">Hệ sao:</label>
+          <label class="text-sm text-neutral-500 ml-2">Hệ sao:</label>
           <input
             v-model.number="currentSystem"
             type="number"
             min="1"
             max="499"
-            class="w-20 bg-space-700 border-none rounded px-2 py-1 text-slate-200 focus:ring-1 focus:ring-primary-500"
+            class="neo-input w-20 py-1 px-2"
             @change="goToSystem"
           >
         </div>
         
         <button
-          class="btn-ghost"
+          class="neo-btn-ghost"
           @click="navigateSystem('next')"
         >
           <IconsMuiTen class="w-5 h-5" />
         </button>
         
-        <button class="btn-primary flex items-center gap-2" @click="goToSystem">
+        <button class="neo-btn-primary flex items-center gap-2" @click="goToSystem">
           <IconsThienHa class="w-4 h-4" />
           Đi đến
         </button>
@@ -104,13 +104,13 @@ const isOwnPlanet = (slot: any) => {
 
     <!-- Loading -->
     <div v-if="isLoading" class="flex items-center justify-center py-12">
-      <div class="animate-spin w-8 h-8 border-2 border-primary-500 border-t-transparent rounded-full"></div>
+      <div class="neo-spinner"></div>
     </div>
 
     <!-- Galaxy View -->
-    <div v-if="!isLoading && systemView.length > 0" class="glass-card overflow-hidden">
+    <div v-if="!isLoading && systemView.length > 0" class="neo-card overflow-hidden">
       <!-- Table Header -->
-      <div class="grid grid-cols-12 gap-2 p-4 bg-space-800/50 border-b border-space-700 text-sm font-medium text-slate-400">
+      <div class="grid grid-cols-12 gap-2 p-4 bg-space-900/50 border-b border-white/5 text-sm font-medium text-neutral-500 uppercase tracking-wider font-display">
         <div class="col-span-1 text-center">Vị trí</div>
         <div class="col-span-3">Hành tinh</div>
         <div class="col-span-2">Người chơi</div>
@@ -120,20 +120,20 @@ const isOwnPlanet = (slot: any) => {
       </div>
 
       <!-- Planet Rows -->
-      <div class="divide-y divide-space-700">
+      <div class="divide-y divide-white/5">
         <div
           v-for="slot in systemView"
           :key="slot.position"
           class="grid grid-cols-12 gap-2 p-4 items-center transition-colors"
           :class="{
             'bg-space-800/30': slot.planet,
-            'hover:bg-space-700/30': slot.planet,
+            'hover:bg-primary-500/5': slot.planet,
             'bg-primary-500/10': isOwnPlanet(slot),
           }"
         >
           <!-- Position -->
           <div class="col-span-1 text-center">
-            <span class="font-mono text-slate-400">
+            <span class="font-mono text-neutral-500">
               {{ currentGalaxy }}:{{ currentSystem }}:{{ slot.position }}
             </span>
           </div>
@@ -143,19 +143,19 @@ const isOwnPlanet = (slot: any) => {
             <template v-if="slot.planet">
               <div class="flex items-center gap-3">
                 <div
-                  class="w-10 h-10 rounded-full flex items-center justify-center"
-                  :class="isOwnPlanet(slot) ? 'bg-primary-500/30' : 'bg-slate-700'"
+                  class="w-10 h-10 neo-card flex items-center justify-center"
+                  :class="isOwnPlanet(slot) ? 'border-primary-500/50' : 'border-neutral-500/20'"
                 >
-                  <IconsHanhTinh class="w-6 h-6" :class="isOwnPlanet(slot) ? 'text-primary-400' : 'text-slate-400'" />
+                  <IconsHanhTinh class="w-6 h-6" :class="isOwnPlanet(slot) ? 'text-primary-500' : 'text-neutral-500'" />
                 </div>
                 <div>
-                  <p class="font-medium text-slate-200">{{ slot.planet.name }}</p>
-                  <p v-if="isOwnPlanet(slot)" class="text-xs text-primary-400">Hành tinh của bạn</p>
+                  <p class="font-medium">{{ slot.planet.name }}</p>
+                  <p v-if="isOwnPlanet(slot)" class="text-xs text-primary-500">Hành tinh của bạn</p>
                 </div>
               </div>
             </template>
             <template v-else>
-              <span class="text-slate-600">— Trống —</span>
+              <span class="text-neutral-600">— Trống —</span>
             </template>
           </div>
 
@@ -164,7 +164,7 @@ const isOwnPlanet = (slot: any) => {
             <template v-if="slot.planet && slot.owner">
               <span
                 class="font-medium"
-                :class="isOwnPlanet(slot) ? 'text-primary-400' : 'text-slate-300'"
+                :class="isOwnPlanet(slot) ? 'text-primary-500' : 'text-neutral-400'"
               >
                 {{ slot.owner.username }}
               </span>
@@ -174,7 +174,7 @@ const isOwnPlanet = (slot: any) => {
           <!-- Level -->
           <div class="col-span-1 text-center">
             <template v-if="slot.owner">
-              <span class="font-mono text-slate-300">{{ slot.owner.level || '?' }}</span>
+              <span class="font-mono text-neutral-400">{{ slot.owner.level || '?' }}</span>
             </template>
           </div>
 
@@ -187,15 +187,15 @@ const isOwnPlanet = (slot: any) => {
           <div class="col-span-3">
             <template v-if="slot.planet && !isOwnPlanet(slot)">
               <div class="flex items-center justify-center gap-2">
-                <button class="btn-ghost text-xs px-3 py-1 flex items-center gap-1">
+                <button class="neo-btn-ghost text-xs px-3 py-1 flex items-center gap-1">
                   <IconsTauDoTham class="w-4 h-4" />
                   Do thám
                 </button>
-                <button class="btn-ghost text-xs px-3 py-1 text-red-400 hover:bg-red-500/10 flex items-center gap-1">
+                <button class="neo-btn-ghost text-xs px-3 py-1 text-alert-400 hover:bg-alert-400/10 flex items-center gap-1">
                   <IconsTanCong class="w-4 h-4" />
                   Tấn công
                 </button>
-                <button class="btn-ghost text-xs px-3 py-1 flex items-center gap-1">
+                <button class="neo-btn-ghost text-xs px-3 py-1 flex items-center gap-1">
                   <IconsHamDoi class="w-4 h-4" />
                   Vận chuyển
                 </button>
@@ -203,7 +203,7 @@ const isOwnPlanet = (slot: any) => {
             </template>
             <template v-else-if="!slot.planet">
               <div class="flex items-center justify-center">
-                <button class="btn-ghost text-xs px-3 py-1 text-green-400 hover:bg-green-500/10 flex items-center gap-1">
+                <button class="neo-btn-ghost text-xs px-3 py-1 text-success-400 hover:bg-success-400/10 flex items-center gap-1">
                   <IconsHanhTinh class="w-4 h-4" />
                   Thuộc địa hóa
                 </button>
@@ -215,17 +215,17 @@ const isOwnPlanet = (slot: any) => {
     </div>
 
     <!-- Legend -->
-    <div class="flex flex-wrap gap-6 text-sm text-slate-500">
+    <div class="flex flex-wrap gap-6 text-sm text-neutral-500">
       <div class="flex items-center gap-2">
-        <div class="w-4 h-4 rounded-full bg-primary-500/30" />
+        <div class="w-4 h-4 neo-card border-primary-500/50" />
         <span>Hành tinh của bạn</span>
       </div>
       <div class="flex items-center gap-2">
-        <div class="w-4 h-4 rounded-full bg-slate-700" />
+        <div class="w-4 h-4 neo-card border-neutral-500/20" />
         <span>Hành tinh của người chơi khác</span>
       </div>
       <div class="flex items-center gap-2">
-        <IconsHanhTinh class="w-4 h-4 text-green-400" />
+        <IconsHanhTinh class="w-4 h-4 text-success-400" />
         <span>Có thể thuộc địa hóa</span>
       </div>
     </div>

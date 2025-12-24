@@ -92,22 +92,25 @@ const handleLogout = async () => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-space-900 text-slate-100">
+  <div class="min-h-screen bg-space-950">
     <!-- Star field background -->
     <div class="star-field" />
+    
+    <!-- Grid overlay -->
+    <div class="fixed inset-0 bg-grid pointer-events-none opacity-30" />
 
     <!-- Mobile menu button -->
     <button
-      class="fixed top-4 left-4 z-50 lg:hidden glass-card p-2"
+      class="fixed top-4 left-4 z-50 lg:hidden neo-card p-2 hover:glow-cyan"
       @click="isMobileMenuOpen = !isMobileMenuOpen"
     >
-      <IconsDong v-if="isMobileMenuOpen" class="w-6 h-6" />
-      <IconsMenu v-else class="w-6 h-6" />
+      <IconsDong v-if="isMobileMenuOpen" class="w-6 h-6 text-primary-500" />
+      <IconsMenu v-else class="w-6 h-6 text-primary-500" />
     </button>
 
     <!-- Sidebar -->
     <aside
-      class="fixed inset-y-0 left-0 z-40 w-64 glass-card border-r border-space-700 transform transition-transform duration-300 lg:translate-x-0"
+      class="fixed inset-y-0 left-0 z-40 w-60 bg-space-800/90 backdrop-blur-xl border-r border-white/5 transform transition-transform duration-300 lg:translate-x-0"
       :class="{
         'translate-x-0': isMobileMenuOpen,
         '-translate-x-full': !isMobileMenuOpen && !isSidebarOpen,
@@ -115,55 +118,52 @@ const handleLogout = async () => {
     >
       <div class="flex flex-col h-full">
         <!-- Logo -->
-        <div class="p-4 border-b border-space-700">
-          <NuxtLink to="/game/overview" class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center">
-              <IconsTenLua class="w-6 h-6 text-white" />
+        <div class="p-5 border-b border-white/5">
+          <NuxtLink to="/game/overview" class="flex items-center gap-3 group">
+            <div class="w-10 h-10 neo-card flex items-center justify-center border-primary-500/50 group-hover:glow-cyan transition-all">
+              <IconsTenLua class="w-5 h-5 text-primary-500" />
             </div>
             <div>
-              <h1 class="font-display font-bold text-lg text-gradient">
-                Thôn Phệ
+              <h1 class="font-display font-bold text-lg text-gradient-cyan">
+                THÔN PHỆ
               </h1>
-              <p class="text-xs text-slate-500">Tinh Không</p>
+              <p class="text-xs text-neutral-500 tracking-widest uppercase">Tinh Không</p>
             </div>
           </NuxtLink>
         </div>
 
         <!-- Navigation -->
-        <nav class="flex-1 p-4 space-y-1 overflow-y-auto">
+        <nav class="flex-1 py-4 overflow-y-auto">
           <NuxtLink
             v-for="item in navigation"
             :key="item.href"
             :to="item.href"
-            class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200"
-            :class="
-              isActiveRoute(item.href)
-                ? 'bg-primary-500/20 text-primary-400 border border-primary-500/30'
-                : 'text-slate-400 hover:bg-space-700 hover:text-slate-200'
-            "
+            class="neo-nav-item"
+            :class="{ 'active': isActiveRoute(item.href) }"
             @click="isMobileMenuOpen = false"
           >
-            <IconsTrungTamChiHuy v-if="item.iconType === 'dashboard'" class="w-5 h-5" />
-            <IconsMoKhoang v-else-if="item.iconType === 'building'" class="w-5 h-5" />
-            <IconsNghienCuu v-else-if="item.iconType === 'research'" class="w-5 h-5" />
-            <IconsXuongDongTau v-else-if="item.iconType === 'shipyard'" class="w-5 h-5" />
-            <IconsHamDoi v-else-if="item.iconType === 'fleet'" class="w-5 h-5" />
-            <IconsThienHa v-else-if="item.iconType === 'galaxy'" class="w-5 h-5" />
-            <span class="font-medium">{{ item.name }}</span>
+            <IconsTrungTamChiHuy v-if="item.iconType === 'dashboard'" class="icon" />
+            <IconsMoKhoang v-else-if="item.iconType === 'building'" class="icon" />
+            <IconsNghienCuu v-else-if="item.iconType === 'research'" class="icon" />
+            <IconsXuongDongTau v-else-if="item.iconType === 'shipyard'" class="icon" />
+            <IconsHamDoi v-else-if="item.iconType === 'fleet'" class="icon" />
+            <IconsThienHa v-else-if="item.iconType === 'galaxy'" class="icon" />
+            <span class="font-medium tracking-wide">{{ item.name }}</span>
           </NuxtLink>
         </nav>
 
         <!-- Footer -->
-        <div class="p-4 border-t border-space-700">
+        <div class="p-4 border-t border-white/5">
           <NuxtLink
             to="/game/settings"
-            class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-400 hover:bg-space-700 hover:text-slate-200 transition-colors"
+            class="neo-nav-item"
+            :class="{ 'active': isActiveRoute('/game/settings') }"
           >
-            <IconsCaiDat class="w-5 h-5" />
+            <IconsCaiDat class="icon" />
             <span>Cài đặt</span>
           </NuxtLink>
           <button
-            class="flex items-center gap-3 px-3 py-2 rounded-lg text-red-400 hover:bg-red-500/10 transition-colors w-full mt-1"
+            class="flex items-center gap-3 px-4 py-3 w-full text-sm font-medium text-alert-400 hover:bg-alert-400/10 transition-colors border-l-2 border-transparent hover:border-alert-400/50"
             @click="handleLogout"
           >
             <IconsQuayLai class="w-5 h-5" />
@@ -176,32 +176,37 @@ const handleLogout = async () => {
     <!-- Overlay for mobile -->
     <div
       v-if="isMobileMenuOpen"
-      class="fixed inset-0 z-30 bg-black/50 lg:hidden"
+      class="fixed inset-0 z-30 bg-space-950/80 backdrop-blur-sm lg:hidden"
       @click="isMobileMenuOpen = false"
     />
 
     <!-- Main content -->
-    <main class="lg:ml-64 relative z-10 min-h-screen">
+    <main class="lg:ml-60 relative z-10 min-h-screen">
       <!-- Loading state -->
       <div v-if="!isInitialized" class="flex items-center justify-center min-h-screen">
         <div class="text-center">
-          <IconsTaiDang class="w-12 h-12 animate-spin text-primary-400 mx-auto mb-4" />
-          <p class="text-slate-400">Đang tải dữ liệu...</p>
+          <div class="relative">
+            <IconsTaiDang class="w-16 h-16 animate-spin text-primary-500 mx-auto" />
+            <div class="absolute inset-0 blur-xl bg-primary-500/30 animate-pulse" />
+          </div>
+          <p class="mt-6 text-neutral-500 text-sm uppercase tracking-widest font-display">Đang tải dữ liệu...</p>
         </div>
       </div>
       
       <template v-else>
         <!-- Top bar with resources -->
-        <header class="sticky top-0 z-20 p-4 bg-space-900/80 backdrop-blur-md border-b border-space-700">
-          <GameResourceBar
-            :tinh-thach="resources.tinhThach"
-            :nang-luong-vu-tru="resources.nangLuongVuTru"
-            :hon-thach="resources.honThach"
-            :dien-nang="resources.dienNang"
-            :dien-nang-max="resources.dienNangMax"
-            show-production
-            :production="production"
-          />
+        <header class="sticky top-0 z-20 bg-space-900/80 backdrop-blur-xl border-b border-white/5">
+          <div class="px-4 py-3">
+            <GameResourceBar
+              :tinh-thach="resources.tinhThach"
+              :nang-luong-vu-tru="resources.nangLuongVuTru"
+              :hon-thach="resources.honThach"
+              :dien-nang="resources.dienNang"
+              :dien-nang-max="resources.dienNangMax"
+              show-production
+              :production="production"
+            />
+          </div>
         </header>
 
         <!-- Page content -->

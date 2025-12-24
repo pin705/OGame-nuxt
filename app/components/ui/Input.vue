@@ -30,9 +30,9 @@ const inputId = `input-${Math.random().toString(36).substr(2, 9)}`
 
 <template>
   <div class="w-full">
-    <label v-if="label" :for="inputId" class="label">
+    <label v-if="label" :for="inputId" class="neo-label">
       {{ label }}
-      <span v-if="required" class="text-red-400">*</span>
+      <span v-if="required" class="text-alert-400">*</span>
     </label>
     
     <div class="relative">
@@ -43,14 +43,14 @@ const inputId = `input-${Math.random().toString(36).substr(2, 9)}`
         :placeholder="placeholder"
         :disabled="disabled"
         :required="required"
-        class="input"
+        class="neo-input"
         :class="{
-          'input-error': error,
+          'neo-input-error': error,
         }"
       >
     </div>
     
-    <p v-if="error" class="mt-1 text-sm text-red-400">
+    <p v-if="error" class="mt-1.5 text-sm text-alert-400 font-medium">
       {{ error }}
     </p>
   </div>

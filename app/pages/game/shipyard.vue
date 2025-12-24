@@ -125,32 +125,32 @@ const handleBuild = async (type: ShipType) => {
   <div class="space-y-6">
     <!-- Header -->
     <div>
-      <h1 class="text-2xl font-display font-bold">Xưởng Đóng Tàu</h1>
-      <p class="text-slate-400">Chế tạo tàu chiến và tàu hỗ trợ cho hạm đội của bạn</p>
+      <h1 class="text-2xl font-display font-bold text-gradient-cyan">Xưởng Đóng Tàu</h1>
+      <p class="text-neutral-500 mt-1">Chế tạo tàu chiến và tàu hỗ trợ cho hạm đội của bạn</p>
     </div>
 
     <!-- Shipyard Info -->
-    <div v-if="currentPlanet" class="glass-card p-4 flex items-center gap-4">
-      <div class="w-12 h-12 rounded-lg bg-secondary-500/20 flex items-center justify-center">
-        <IconsXuongDongTau class="w-8 h-8 text-secondary-400" />
+    <div v-if="currentPlanet" class="neo-card p-4 flex items-center gap-4">
+      <div class="w-12 h-12 neo-card flex items-center justify-center border-success-400/30">
+        <IconsXuongDongTau class="w-8 h-8 text-success-400" />
       </div>
       <div>
-        <p class="font-medium text-slate-200">Xưởng Đóng Tàu</p>
-        <p class="text-sm text-slate-400">Cấp {{ shipyardLevel }} - Chế tạo nhanh hơn {{ shipyardLevel * 10 }}%</p>
+        <p class="font-medium">Xưởng Đóng Tàu</p>
+        <p class="text-sm text-neutral-500">Cấp <span class="text-success-400 font-mono">{{ shipyardLevel }}</span> - Chế tạo nhanh hơn {{ shipyardLevel * 10 }}%</p>
       </div>
     </div>
 
     <!-- Error Message -->
-    <div v-if="buildError" class="glass-card p-4 border-l-4 border-red-500">
+    <div v-if="buildError" class="neo-card p-4 border-l-2 border-alert-400">
       <div class="flex items-center gap-3">
-        <IconsCanhBao class="w-6 h-6 text-red-400" />
-        <p class="text-red-400">{{ buildError }}</p>
+        <IconsCanhBao class="w-6 h-6 text-alert-400" />
+        <p class="text-alert-400">{{ buildError }}</p>
       </div>
     </div>
 
     <!-- Loading -->
     <div v-if="isLoading && !currentPlanet" class="flex items-center justify-center py-12">
-      <div class="animate-spin w-8 h-8 border-2 border-primary-500 border-t-transparent rounded-full"></div>
+      <div class="neo-spinner"></div>
     </div>
 
     <!-- Category Tabs -->
@@ -158,11 +158,11 @@ const handleBuild = async (type: ShipType) => {
       <button
         v-for="category in categories"
         :key="category.name"
-        class="flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200"
+        class="flex items-center gap-2 px-4 py-2.5 transition-all duration-200"
         :class="
           activeCategory === category.name
-            ? 'bg-secondary-500/20 text-secondary-400 border border-secondary-500/30'
-            : 'bg-space-800/50 text-slate-400 border border-space-700 hover:bg-space-700'
+            ? 'neo-btn'
+            : 'neo-btn-ghost'
         "
         @click="activeCategory = category.name"
       >
@@ -172,15 +172,15 @@ const handleBuild = async (type: ShipType) => {
     </div>
 
     <!-- Building Queue -->
-    <div v-if="shipBuildQueue" class="glass-card p-4 border-l-4 border-secondary-500">
+    <div v-if="shipBuildQueue" class="neo-card p-4 border-l-2 border-success-400">
       <div class="flex items-center gap-3">
-        <IconsXuongDongTau class="w-6 h-6 text-secondary-400 animate-pulse" />
+        <IconsXuongDongTau class="w-6 h-6 text-success-400 neo-pulse" />
         <div class="flex-1">
-          <p class="font-medium text-slate-200">
+          <p class="font-medium">
             Đang chế tạo {{ shipBuildQueue.count }} {{ SHIPS[shipBuildQueue.type as ShipType]?.name || shipBuildQueue.type }}
           </p>
-          <p class="text-sm text-slate-400">
-            Còn {{ Math.floor((shipBuildQueue.remainingSeconds || 0) / 60) }}m {{ (shipBuildQueue.remainingSeconds || 0) % 60 }}s
+          <p class="text-sm text-neutral-500">
+            Còn <span class="text-warning-400 font-mono">{{ Math.floor((shipBuildQueue.remainingSeconds || 0) / 60) }}m {{ (shipBuildQueue.remainingSeconds || 0) % 60 }}s</span>
           </p>
         </div>
       </div>
@@ -191,60 +191,60 @@ const handleBuild = async (type: ShipType) => {
       <div
         v-for="ship in filteredShips"
         :key="ship.type"
-        class="glass-card p-4"
-        :class="{ 'ring-2 ring-secondary-500': ship.isBuilding }"
+        class="neo-card neo-card-hover p-4"
+        :class="{ 'border-success-400/50 neo-active-pulse': ship.isBuilding }"
       >
         <div class="flex items-start gap-4">
-          <div class="w-14 h-14 rounded-lg bg-secondary-900/30 flex items-center justify-center flex-shrink-0">
-            <IconsChienHam class="w-8 h-8 text-secondary-400" />
+          <div class="w-14 h-14 neo-card flex items-center justify-center border-success-400/20">
+            <IconsChienHam class="w-8 h-8 text-success-400" />
           </div>
           
           <div class="flex-1">
             <div class="flex items-center justify-between mb-1">
-              <h3 class="font-display font-semibold text-slate-100">
+              <h3 class="font-display font-semibold">
                 {{ SHIPS[ship.type].name }}
               </h3>
-              <span class="font-mono text-lg text-secondary-400">{{ ship.count }}</span>
+              <span class="font-mono text-lg text-success-400">{{ ship.count }}</span>
             </div>
             
-            <p class="text-xs text-slate-500 mb-2">
+            <p class="text-xs text-neutral-500 mb-2">
               {{ SHIPS[ship.type].description }}
             </p>
 
             <!-- Stats -->
-            <div class="flex flex-wrap gap-3 text-xs text-slate-400 mb-3">
+            <div class="flex flex-wrap gap-3 text-xs text-neutral-500 mb-3 font-mono">
               <span class="flex items-center gap-1">
-                <IconsTanCong class="w-3.5 h-3.5 text-red-400" />
+                <IconsTanCong class="w-3.5 h-3.5 text-alert-400" />
                 {{ SHIPS[ship.type].stats.attack }}
               </span>
               <span class="flex items-center gap-1">
-                <IconsKhienLuc class="w-3.5 h-3.5 text-blue-400" />
+                <IconsKhienLuc class="w-3.5 h-3.5 text-primary-500" />
                 {{ SHIPS[ship.type].stats.defense }}
               </span>
               <span class="flex items-center gap-1">
-                <IconsVanChuyen class="w-3.5 h-3.5 text-yellow-400" />
+                <IconsVanChuyen class="w-3.5 h-3.5 text-warning-400" />
                 {{ formatNumber(SHIPS[ship.type].stats.cargo) }}
               </span>
               <span class="flex items-center gap-1">
-                <IconsTocDo class="w-3.5 h-3.5 text-green-400" />
+                <IconsTocDo class="w-3.5 h-3.5 text-success-400" />
                 {{ formatNumber(SHIPS[ship.type].stats.speed) }}
               </span>
             </div>
 
             <!-- Cost per ship -->
             <div class="mb-3">
-              <p class="text-xs text-slate-500 mb-1">Chi phí/tàu:</p>
-              <div class="flex flex-wrap gap-2 text-xs">
-                <span class="resource-metal flex items-center gap-1">
-                  <IconsTinhThach class="w-4 h-4" />
+              <p class="text-xs text-neutral-500 mb-1 uppercase tracking-wider font-display">Chi phí/tàu:</p>
+              <div class="flex flex-wrap gap-3 text-xs font-mono">
+                <span class="flex items-center gap-1 text-neutral-400">
+                  <IconsTinhThach class="w-3.5 h-3.5" />
                   {{ formatNumber(SHIPS[ship.type].cost.tinhThach) }}
                 </span>
-                <span class="resource-crystal flex items-center gap-1">
-                  <IconsNangLuong class="w-4 h-4" />
+                <span class="flex items-center gap-1 text-primary-500">
+                  <IconsNangLuong class="w-3.5 h-3.5" />
                   {{ formatNumber(SHIPS[ship.type].cost.nangLuongVuTru) }}
                 </span>
-                <span v-if="SHIPS[ship.type].cost.honThach > 0" class="resource-deuterium flex items-center gap-1">
-                  <IconsHonThach class="w-4 h-4" />
+                <span v-if="SHIPS[ship.type].cost.honThach > 0" class="flex items-center gap-1 text-success-400">
+                  <IconsHonThach class="w-3.5 h-3.5" />
                   {{ formatNumber(SHIPS[ship.type].cost.honThach) }}
                 </span>
               </div>
@@ -258,18 +258,18 @@ const handleBuild = async (type: ShipType) => {
                 min="1"
                 :max="maxBuildable(ship.type)"
                 placeholder="1"
-                class="input w-20 text-center text-sm"
+                class="neo-input w-20 text-center text-sm"
               >
               <button
-                class="btn-ghost text-xs px-2"
+                class="neo-btn-ghost text-xs px-2"
                 @click="setMaxQuantity(ship.type)"
               >
                 Max
               </button>
               <button
                 :disabled="!canAffordShip(ship.type, buildQuantity[ship.type] || 1) || isAnyBuilding"
-                class="btn-secondary flex-1 text-sm"
-                :class="{ 'opacity-50 cursor-not-allowed': !canAffordShip(ship.type, buildQuantity[ship.type] || 1) || isAnyBuilding }"
+                class="flex-1 text-sm flex items-center justify-center gap-2"
+                :class="canAffordShip(ship.type, buildQuantity[ship.type] || 1) && !isAnyBuilding ? 'neo-btn-success' : 'neo-btn-ghost opacity-50 cursor-not-allowed'"
                 @click="handleBuild(ship.type)"
               >
                 <IconsXuongDongTau class="w-4 h-4" />
@@ -280,13 +280,13 @@ const handleBuild = async (type: ShipType) => {
             <!-- Building Progress -->
             <div v-else>
               <div class="flex items-center justify-between text-xs mb-1">
-                <span class="text-secondary-400">
+                <span class="text-success-400">
                   Đang chế tạo {{ ship.buildCount }} tàu...
                 </span>
-                <span class="font-mono text-slate-300">30:00</span>
+                <span class="font-mono">30:00</span>
               </div>
-              <div class="progress-bar">
-                <div class="progress-bar-fill bg-gradient-to-r from-secondary-500 to-secondary-400" style="width: 45%;" />
+              <div class="neo-progress neo-progress-green">
+                <div class="neo-progress-fill" style="width: 45%;" />
               </div>
             </div>
           </div>

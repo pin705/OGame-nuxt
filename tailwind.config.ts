@@ -12,81 +12,105 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Primary - Cosmic Blue
+        // Neo-OGame Theme Colors
+        // Primary Cyan - Main action, energy, links
         primary: {
-          50: '#f0f9ff',
-          100: '#e0f2fe',
-          200: '#bae6fd',
-          300: '#7dd3fc',
-          400: '#38bdf8',
-          500: '#0ea5e9',
-          600: '#0284c7',
-          700: '#0369a1',
-          800: '#075985',
-          900: '#0c4a6e',
-          950: '#082f49',
+          50: '#ecfeff',
+          100: '#cffafe',
+          200: '#a5f3fc',
+          300: '#67e8f9',
+          400: '#22d3ee',
+          500: '#00D1FF', // Main accent
+          600: '#00b8e6',
+          700: '#0891b2',
+          800: '#155e75',
+          900: '#164e63',
+          950: '#083344',
         },
-        // Secondary - Soul Purple
-        secondary: {
-          50: '#faf5ff',
-          100: '#f3e8ff',
-          200: '#e9d5ff',
-          300: '#d8b4fe',
-          400: '#c084fc',
-          500: '#a855f7',
-          600: '#9333ea',
-          700: '#7e22ce',
-          800: '#6b21a8',
-          900: '#581c87',
-          950: '#3b0764',
+        // Success Green - Upgrades, production
+        success: {
+          50: '#f0fdf4',
+          100: '#dcfce7',
+          200: '#bbf7d0',
+          300: '#86efac',
+          400: '#00F59B', // Main accent
+          500: '#22c55e',
+          600: '#16a34a',
+          700: '#15803d',
+          800: '#166534',
+          900: '#14532d',
         },
-        // Accent - Energy Gold
-        accent: {
+        // Alert Red - Attacks, warnings
+        alert: {
+          50: '#fef2f2',
+          100: '#fee2e2',
+          200: '#fecaca',
+          300: '#fca5a5',
+          400: '#FF4D4D', // Main accent
+          500: '#ef4444',
+          600: '#dc2626',
+          700: '#b91c1c',
+          800: '#991b1b',
+          900: '#7f1d1d',
+        },
+        // Warning Amber - Low resources, fleet transit
+        warning: {
           50: '#fffbeb',
           100: '#fef3c7',
           200: '#fde68a',
           300: '#fcd34d',
-          400: '#fbbf24',
+          400: '#FFB800', // Main accent
           500: '#f59e0b',
           600: '#d97706',
           700: '#b45309',
           800: '#92400e',
           900: '#78350f',
-          950: '#451a03',
         },
-        // Space Dark backgrounds
+        // Space backgrounds
         space: {
-          900: '#0f172a',
-          800: '#1e293b',
-          700: '#334155',
-          600: '#475569',
-          500: '#64748b',
+          950: '#0B0E14', // Primary-Dark: Deep space
+          900: '#0D1117', // Slightly lighter
+          800: '#161B22', // Surface-Dark: Cards
+          700: '#21262D', // Borders
+          600: '#30363D', // Hover states
+          500: '#484F58', // Inactive
+        },
+        // Neutral Gray
+        neutral: {
+          400: '#8E9297',
+          500: '#9DA3AE',
         },
       },
       fontFamily: {
         display: ['Orbitron', 'sans-serif'],
-        body: ['Exo 2', 'sans-serif'],
-        mono: ['Roboto Mono', 'monospace'],
+        body: ['Rajdhani', 'sans-serif'],
+        mono: ['JetBrains Mono', 'Roboto Mono', 'monospace'],
       },
       backgroundImage: {
-        'stars': "url('/images/stars-bg.png')",
-        'nebula': "url('/images/nebula-bg.png')",
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
-        'gradient-cosmic': 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%)',
+        'gradient-cosmic': 'linear-gradient(135deg, #0B0E14 0%, #161B22 50%, #0B0E14 100%)',
+        'gradient-surface': 'linear-gradient(180deg, #161B22 0%, #0D1117 100%)',
       },
       boxShadow: {
-        'glow-primary': '0 0 20px rgba(14, 165, 233, 0.5)',
-        'glow-secondary': '0 0 20px rgba(139, 92, 246, 0.5)',
-        'glow-accent': '0 0 20px rgba(245, 158, 11, 0.5)',
-        'glow-success': '0 0 20px rgba(34, 197, 94, 0.5)',
-        'glow-danger': '0 0 20px rgba(239, 68, 68, 0.5)',
-        'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.37)',
+        'neon-cyan': '0 0 15px rgba(0, 209, 255, 0.5)',
+        'neon-green': '0 0 15px rgba(0, 245, 155, 0.5)',
+        'neon-red': '0 0 15px rgba(255, 77, 77, 0.5)',
+        'neon-amber': '0 0 15px rgba(255, 184, 0, 0.5)',
+        'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
+        'glow-primary': '0 0 20px rgba(0, 209, 255, 0.4)',
+        'glow-success': '0 0 20px rgba(0, 245, 155, 0.4)',
+        'glow-alert': '0 0 20px rgba(255, 77, 77, 0.4)',
+      },
+      borderRadius: {
+        'sm': '2px',
+        'clip': '2px',
       },
       animation: {
         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         'float': 'float 6s ease-in-out infinite',
         'glow': 'glow 2s ease-in-out infinite alternate',
-        'stars': 'stars 100s linear infinite',
+        'neon-pulse': 'neonPulse 2s ease-in-out infinite',
+        'scan': 'scan 3s linear infinite',
       },
       keyframes: {
         float: {
@@ -97,13 +121,17 @@ export default {
           '0%': { boxShadow: '0 0 5px currentColor' },
           '100%': { boxShadow: '0 0 20px currentColor, 0 0 30px currentColor' },
         },
-        stars: {
-          '0%': { transform: 'translateY(0)' },
-          '100%': { transform: 'translateY(-2000px)' },
+        neonPulse: {
+          '0%, 100%': { opacity: '1' },
+          '50%': { opacity: '0.7' },
+        },
+        scan: {
+          '0%': { transform: 'translateY(-100%)' },
+          '100%': { transform: 'translateY(100%)' },
         },
       },
       backdropBlur: {
-        xs: '2px',
+        'xs': '2px',
       },
     },
   },

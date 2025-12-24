@@ -101,41 +101,47 @@ const deleteAccount = async () => {
   <div class="max-w-4xl mx-auto space-y-6">
     <!-- Page Header -->
     <div class="flex items-center gap-4">
-      <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center">
-        <IconsCaiDat class="w-7 h-7 text-white" />
+      <div class="w-12 h-12 neo-card flex items-center justify-center border-primary-500/30">
+        <IconsCaiDat class="w-6 h-6 text-primary-500" />
       </div>
       <div>
-        <h1 class="text-2xl font-display font-bold text-gradient">Cài Đặt</h1>
-        <p class="text-slate-400">Quản lý tài khoản và tùy chỉnh trải nghiệm game</p>
+        <h1 class="text-2xl font-display font-bold text-gradient-cyan">Cài Đặt</h1>
+        <p class="text-neutral-500 mt-1">Quản lý tài khoản và tùy chỉnh trải nghiệm game</p>
       </div>
     </div>
 
     <!-- Message -->
     <div v-if="message" 
-         class="p-4 rounded-lg"
-         :class="messageType === 'success' ? 'bg-green-500/10 border border-green-500/30 text-green-400' : 'bg-red-500/10 border border-red-500/30 text-red-400'">
+         class="p-4 neo-card"
+         :class="messageType === 'success' ? 'border-success-400/50 bg-success-400/10 text-success-400' : 'border-alert-400/50 bg-alert-400/10 text-alert-400'">
       {{ message }}
     </div>
 
     <!-- Profile Settings -->
-    <UiCard title="Thông Tin Cá Nhân" subtitle="Cập nhật thông tin tài khoản của bạn">
+    <div class="neo-card p-5">
+      <div class="neo-section-header">
+        <div>
+          <h3 class="neo-section-title">Thông Tin Cá Nhân</h3>
+          <p class="text-sm text-neutral-500 mt-1">Cập nhật thông tin tài khoản của bạn</p>
+        </div>
+      </div>
       <form @submit.prevent="saveProfile" class="space-y-4">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm font-medium text-slate-300 mb-2">Tên Chiến Sĩ</label>
+            <label class="neo-label">Tên Chiến Sĩ</label>
             <input 
               v-model="profileForm.username"
               type="text" 
-              class="w-full px-4 py-2 rounded-lg bg-space-800 border border-space-600 text-white focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition"
+              class="neo-input"
               placeholder="Tên chiến sĩ"
             />
           </div>
           <div>
-            <label class="block text-sm font-medium text-slate-300 mb-2">Email</label>
+            <label class="neo-label">Email</label>
             <input 
               v-model="profileForm.email"
               type="email" 
-              class="w-full px-4 py-2 rounded-lg bg-space-800 border border-space-600 text-white focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition"
+              class="neo-input"
               placeholder="email@example.com"
             />
           </div>
@@ -144,122 +150,140 @@ const deleteAccount = async () => {
         <div class="flex justify-end">
           <button 
             type="submit" 
-            class="px-6 py-2 rounded-lg bg-primary-600 hover:bg-primary-500 text-white font-medium transition disabled:opacity-50"
+            class="neo-btn"
             :disabled="isSaving"
           >
-            <IconsTaiDang v-if="isSaving" class="w-4 h-4 animate-spin inline mr-2" />
+            <IconsTaiDang v-if="isSaving" class="w-4 h-4 animate-spin" />
             Lưu Thay Đổi
           </button>
         </div>
       </form>
-    </UiCard>
+    </div>
 
     <!-- Player Stats -->
-    <UiCard title="Thống Kê Người Chơi" subtitle="Thông tin và thành tích của bạn">
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div class="glass-card p-4 text-center">
-          <div class="text-2xl font-bold text-primary-400">{{ auth.player.value?.level || 1 }}</div>
-          <div class="text-sm text-slate-400">Cấp độ</div>
-        </div>
-        <div class="glass-card p-4 text-center">
-          <div class="text-2xl font-bold text-secondary-400">{{ auth.player.value?.experience || 0 }}</div>
-          <div class="text-sm text-slate-400">Kinh nghiệm</div>
-        </div>
-        <div class="glass-card p-4 text-center">
-          <div class="text-2xl font-bold text-accent-400">{{ auth.player.value?.planets?.length || 1 }}</div>
-          <div class="text-sm text-slate-400">Hành tinh</div>
-        </div>
-        <div class="glass-card p-4 text-center">
-          <div class="text-lg font-bold text-green-400">{{ auth.player.value?.rank || 'Chiến Binh Sơ Cấp' }}</div>
-          <div class="text-sm text-slate-400">Cấp bậc</div>
+    <div class="neo-card p-5">
+      <div class="neo-section-header">
+        <div>
+          <h3 class="neo-section-title">Thống Kê Người Chơi</h3>
+          <p class="text-sm text-neutral-500 mt-1">Thông tin và thành tích của bạn</p>
         </div>
       </div>
-    </UiCard>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="neo-card p-4 text-center">
+          <div class="text-2xl font-display font-bold text-primary-500">{{ auth.player.value?.level || 1 }}</div>
+          <div class="text-xs text-neutral-500 uppercase tracking-wider mt-1">Cấp độ</div>
+        </div>
+        <div class="neo-card p-4 text-center">
+          <div class="text-2xl font-display font-bold text-success-400">{{ auth.player.value?.experience || 0 }}</div>
+          <div class="text-xs text-neutral-500 uppercase tracking-wider mt-1">Kinh nghiệm</div>
+        </div>
+        <div class="neo-card p-4 text-center">
+          <div class="text-2xl font-display font-bold text-warning-400">{{ auth.player.value?.planets?.length || 1 }}</div>
+          <div class="text-xs text-neutral-500 uppercase tracking-wider mt-1">Hành tinh</div>
+        </div>
+        <div class="neo-card p-4 text-center">
+          <div class="text-base font-display font-bold text-success-400">{{ auth.player.value?.rank || 'Chiến Binh Sơ Cấp' }}</div>
+          <div class="text-xs text-neutral-500 uppercase tracking-wider mt-1">Cấp bậc</div>
+        </div>
+      </div>
+    </div>
 
     <!-- Game Settings -->
-    <UiCard title="Cài Đặt Game" subtitle="Tùy chỉnh trải nghiệm chơi game">
-      <div class="space-y-4">
-        <div class="flex items-center justify-between p-3 rounded-lg bg-space-800">
+    <div class="neo-card p-5">
+      <div class="neo-section-header">
+        <div>
+          <h3 class="neo-section-title">Cài Đặt Game</h3>
+          <p class="text-sm text-neutral-500 mt-1">Tùy chỉnh trải nghiệm chơi game</p>
+        </div>
+      </div>
+      <div class="space-y-3">
+        <div class="flex items-center justify-between p-3 neo-card">
           <div>
             <div class="font-medium">Âm thanh</div>
-            <div class="text-sm text-slate-400">Bật/tắt hiệu ứng âm thanh</div>
+            <div class="text-sm text-neutral-500">Bật/tắt hiệu ứng âm thanh</div>
           </div>
           <button 
             @click="settings.soundEnabled = !settings.soundEnabled"
-            class="w-12 h-6 rounded-full transition-colors"
-            :class="settings.soundEnabled ? 'bg-primary-600' : 'bg-space-600'"
+            class="w-12 h-6 rounded-full transition-colors relative"
+            :class="settings.soundEnabled ? 'bg-primary-500/30 border border-primary-500/50' : 'bg-space-700 border border-white/10'"
           >
             <div 
-              class="w-5 h-5 rounded-full bg-white shadow transform transition-transform mx-0.5"
-              :class="settings.soundEnabled ? 'translate-x-6' : 'translate-x-0'"
+              class="w-5 h-5 rounded-full shadow transform transition-transform absolute top-0.5"
+              :class="settings.soundEnabled ? 'translate-x-6 bg-primary-500' : 'translate-x-0.5 bg-neutral-500'"
             />
           </button>
         </div>
 
-        <div class="flex items-center justify-between p-3 rounded-lg bg-space-800">
+        <div class="flex items-center justify-between p-3 neo-card">
           <div>
             <div class="font-medium">Nhạc nền</div>
-            <div class="text-sm text-slate-400">Bật/tắt nhạc nền</div>
+            <div class="text-sm text-neutral-500">Bật/tắt nhạc nền</div>
           </div>
           <button 
             @click="settings.musicEnabled = !settings.musicEnabled"
-            class="w-12 h-6 rounded-full transition-colors"
-            :class="settings.musicEnabled ? 'bg-primary-600' : 'bg-space-600'"
+            class="w-12 h-6 rounded-full transition-colors relative"
+            :class="settings.musicEnabled ? 'bg-primary-500/30 border border-primary-500/50' : 'bg-space-700 border border-white/10'"
           >
             <div 
-              class="w-5 h-5 rounded-full bg-white shadow transform transition-transform mx-0.5"
-              :class="settings.musicEnabled ? 'translate-x-6' : 'translate-x-0'"
+              class="w-5 h-5 rounded-full shadow transform transition-transform absolute top-0.5"
+              :class="settings.musicEnabled ? 'translate-x-6 bg-primary-500' : 'translate-x-0.5 bg-neutral-500'"
             />
           </button>
         </div>
 
-        <div class="flex items-center justify-between p-3 rounded-lg bg-space-800">
+        <div class="flex items-center justify-between p-3 neo-card">
           <div>
             <div class="font-medium">Thông báo</div>
-            <div class="text-sm text-slate-400">Nhận thông báo khi có sự kiện quan trọng</div>
+            <div class="text-sm text-neutral-500">Nhận thông báo khi có sự kiện quan trọng</div>
           </div>
           <button 
             @click="settings.notificationsEnabled = !settings.notificationsEnabled"
-            class="w-12 h-6 rounded-full transition-colors"
-            :class="settings.notificationsEnabled ? 'bg-primary-600' : 'bg-space-600'"
+            class="w-12 h-6 rounded-full transition-colors relative"
+            :class="settings.notificationsEnabled ? 'bg-primary-500/30 border border-primary-500/50' : 'bg-space-700 border border-white/10'"
           >
             <div 
-              class="w-5 h-5 rounded-full bg-white shadow transform transition-transform mx-0.5"
-              :class="settings.notificationsEnabled ? 'translate-x-6' : 'translate-x-0'"
+              class="w-5 h-5 rounded-full shadow transform transition-transform absolute top-0.5"
+              :class="settings.notificationsEnabled ? 'translate-x-6 bg-primary-500' : 'translate-x-0.5 bg-neutral-500'"
             />
           </button>
         </div>
       </div>
-    </UiCard>
+    </div>
 
     <!-- Change Password -->
-    <UiCard title="Đổi Mật Khẩu" subtitle="Cập nhật mật khẩu để bảo vệ tài khoản">
+    <div class="neo-card p-5">
+      <div class="neo-section-header">
+        <div>
+          <h3 class="neo-section-title">Đổi Mật Khẩu</h3>
+          <p class="text-sm text-neutral-500 mt-1">Cập nhật mật khẩu để bảo vệ tài khoản</p>
+        </div>
+      </div>
       <form @submit.prevent="changePassword" class="space-y-4">
         <div>
-          <label class="block text-sm font-medium text-slate-300 mb-2">Mật khẩu hiện tại</label>
+          <label class="neo-label">Mật khẩu hiện tại</label>
           <input 
             v-model="passwordForm.currentPassword"
             type="password" 
-            class="w-full px-4 py-2 rounded-lg bg-space-800 border border-space-600 text-white focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition"
+            class="neo-input"
             placeholder="••••••••"
           />
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm font-medium text-slate-300 mb-2">Mật khẩu mới</label>
+            <label class="neo-label">Mật khẩu mới</label>
             <input 
               v-model="passwordForm.newPassword"
               type="password" 
-              class="w-full px-4 py-2 rounded-lg bg-space-800 border border-space-600 text-white focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition"
+              class="neo-input"
               placeholder="••••••••"
             />
           </div>
           <div>
-            <label class="block text-sm font-medium text-slate-300 mb-2">Xác nhận mật khẩu mới</label>
+            <label class="neo-label">Xác nhận mật khẩu mới</label>
             <input 
               v-model="passwordForm.confirmPassword"
               type="password" 
-              class="w-full px-4 py-2 rounded-lg bg-space-800 border border-space-600 text-white focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition"
+              class="neo-input"
               placeholder="••••••••"
             />
           </div>
@@ -268,31 +292,37 @@ const deleteAccount = async () => {
         <div class="flex justify-end">
           <button 
             type="submit" 
-            class="px-6 py-2 rounded-lg bg-secondary-600 hover:bg-secondary-500 text-white font-medium transition disabled:opacity-50"
+            class="neo-btn-success"
             :disabled="isSaving"
           >
             Đổi Mật Khẩu
           </button>
         </div>
       </form>
-    </UiCard>
+    </div>
 
     <!-- Danger Zone -->
-    <UiCard title="Vùng Nguy Hiểm" subtitle="Các hành động không thể hoàn tác">
-      <div class="p-4 rounded-lg bg-red-500/10 border border-red-500/30">
+    <div class="neo-card p-5">
+      <div class="neo-section-header">
+        <div>
+          <h3 class="neo-section-title text-alert-400">Vùng Nguy Hiểm</h3>
+          <p class="text-sm text-neutral-500 mt-1">Các hành động không thể hoàn tác</p>
+        </div>
+      </div>
+      <div class="p-4 neo-card border-alert-400/30 bg-alert-400/5">
         <div class="flex items-center justify-between">
           <div>
-            <div class="font-medium text-red-400">Xóa Tài Khoản</div>
-            <div class="text-sm text-slate-400">Xóa vĩnh viễn tài khoản và tất cả dữ liệu</div>
+            <div class="font-display font-semibold text-alert-400">Xóa Tài Khoản</div>
+            <div class="text-sm text-neutral-500">Xóa vĩnh viễn tài khoản và tất cả dữ liệu</div>
           </div>
           <button 
             @click="deleteAccount"
-            class="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white font-medium transition"
+            class="neo-btn-alert"
           >
             Xóa Tài Khoản
           </button>
         </div>
       </div>
-    </UiCard>
+    </div>
   </div>
 </template>

@@ -55,21 +55,21 @@ const handleRegister = async () => {
 </script>
 
 <template>
-  <div class="min-h-screen flex items-center justify-center px-4 py-12">
+  <div class="min-h-screen flex items-center justify-center px-4 py-12 bg-grid">
     <div class="w-full max-w-md">
       <!-- Logo -->
       <div class="text-center mb-8">
-        <NuxtLink to="/" class="inline-block">
-          <div class="w-16 h-16 rounded-xl bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center mx-auto mb-4">
-            <IconsTenLua class="w-10 h-10 text-white" />
+        <NuxtLink to="/" class="inline-block group">
+          <div class="w-16 h-16 neo-card border-success-400/50 flex items-center justify-center mx-auto mb-4 group-hover:glow-green transition-all">
+            <IconsTenLua class="w-8 h-8 text-success-400" />
           </div>
         </NuxtLink>
-        <h1 class="text-2xl font-display font-bold text-gradient">Tạo Tài Khoản Mới</h1>
-        <p class="text-slate-400 mt-2">Nhận ngay hành tinh đầu tiên miễn phí!</p>
+        <h1 class="text-2xl font-display font-bold text-gradient-cyan">Tạo Tài Khoản Mới</h1>
+        <p class="text-neutral-500 mt-2">Nhận ngay hành tinh đầu tiên miễn phí!</p>
       </div>
 
       <!-- Register Form -->
-      <UiCard>
+      <div class="neo-card p-6">
         <form @submit.prevent="handleRegister" class="space-y-5">
           <UiInput
             v-model="form.username"
@@ -103,20 +103,20 @@ const handleRegister = async () => {
             required
           />
 
-          <div v-if="error" class="p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm">
+          <div v-if="error" class="p-3 neo-card border-alert-400/50 bg-alert-400/10 text-alert-400 text-sm">
             {{ error }}
           </div>
 
-          <div class="text-xs text-slate-500">
+          <div class="text-xs text-neutral-500">
             Bằng việc đăng ký, bạn đồng ý với
-            <a href="#" class="text-primary-400">Điều khoản sử dụng</a>
+            <a href="#" class="text-primary-500 hover:text-primary-400">Điều khoản sử dụng</a>
             và
-            <a href="#" class="text-primary-400">Chính sách bảo mật</a>.
+            <a href="#" class="text-primary-500 hover:text-primary-400">Chính sách bảo mật</a>.
           </div>
 
           <button
             type="submit"
-            class="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-gradient-to-r from-primary-500 to-secondary-500 text-white font-semibold hover:from-primary-400 hover:to-secondary-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            class="neo-btn-success w-full flex items-center justify-center gap-2"
             :disabled="isLoading"
           >
             <IconsTaiDang v-if="isLoading" class="w-5 h-5 animate-spin" />
@@ -125,31 +125,37 @@ const handleRegister = async () => {
           </button>
         </form>
 
-        <template #footer>
-          <p class="text-center text-sm text-slate-400">
-            Đã có tài khoản?
-            <NuxtLink to="/login" class="text-primary-400 hover:text-primary-300 font-medium">
-              Đăng nhập
-            </NuxtLink>
-          </p>
-        </template>
-      </UiCard>
+        <div class="neo-divider my-6"></div>
+        
+        <p class="text-center text-sm text-neutral-500">
+          Đã có tài khoản?
+          <NuxtLink to="/login" class="text-primary-500 hover:text-primary-400 font-medium transition-colors">
+            Đăng nhập
+          </NuxtLink>
+        </p>
+      </div>
 
       <!-- Benefits -->
-      <div class="mt-8 glass-card p-4">
-        <h3 class="text-sm font-semibold text-slate-300 mb-3">Khi đăng ký, bạn nhận được:</h3>
-        <ul class="space-y-2 text-sm text-slate-400">
-          <li class="flex items-center gap-2">
-            <IconsHoanThanh class="w-4 h-4 text-green-400" />
-            1 Hành tinh với 163 ô đất
+      <div class="mt-8 neo-card p-5">
+        <h3 class="text-sm font-display font-semibold mb-4 uppercase tracking-wider text-neutral-400">Khi đăng ký, bạn nhận được:</h3>
+        <ul class="space-y-3 text-sm">
+          <li class="flex items-center gap-3">
+            <div class="w-6 h-6 neo-card flex items-center justify-center border-success-400/30">
+              <IconsHoanThanh class="w-3.5 h-3.5 text-success-400" />
+            </div>
+            <span class="text-neutral-400">1 Hành tinh với 163 ô đất</span>
           </li>
-          <li class="flex items-center gap-2">
-            <IconsHoanThanh class="w-4 h-4 text-green-400" />
-            500 Tinh Thạch + 500 Năng Lượng Vũ Trụ
+          <li class="flex items-center gap-3">
+            <div class="w-6 h-6 neo-card flex items-center justify-center border-success-400/30">
+              <IconsHoanThanh class="w-3.5 h-3.5 text-success-400" />
+            </div>
+            <span class="text-neutral-400">500 Tinh Thạch + 500 Năng Lượng Vũ Trụ</span>
           </li>
-          <li class="flex items-center gap-2">
-            <IconsHoanThanh class="w-4 h-4 text-green-400" />
-            Hướng dẫn chi tiết cho người mới
+          <li class="flex items-center gap-3">
+            <div class="w-6 h-6 neo-card flex items-center justify-center border-success-400/30">
+              <IconsHoanThanh class="w-3.5 h-3.5 text-success-400" />
+            </div>
+            <span class="text-neutral-400">Hướng dẫn chi tiết cho người mới</span>
           </li>
         </ul>
       </div>

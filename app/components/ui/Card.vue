@@ -16,18 +16,18 @@ withDefaults(defineProps<Props>(), {
 
 <template>
   <div
-    class="glass-card"
+    class="neo-card"
     :class="{
-      'p-4 md:p-6': padding,
-      'glass-card-hover': hover,
-      'neon-border': neon,
+      'p-4 md:p-5': padding,
+      'neo-card-hover': hover,
+      'neo-glow-cyan': neon,
     }"
   >
     <!-- Header -->
-    <div v-if="title || $slots.header" class="card-header">
+    <div v-if="title || $slots.header" class="neo-card-header">
       <div>
-        <h3 v-if="title" class="card-title">{{ title }}</h3>
-        <p v-if="subtitle" class="text-sm text-slate-400 mt-0.5">{{ subtitle }}</p>
+        <h3 v-if="title" class="neo-card-title">{{ title }}</h3>
+        <p v-if="subtitle" class="text-sm text-neutral-500 mt-0.5">{{ subtitle }}</p>
       </div>
       <slot name="header-actions" />
     </div>
@@ -36,7 +36,7 @@ withDefaults(defineProps<Props>(), {
     <slot />
 
     <!-- Footer -->
-    <div v-if="$slots.footer" class="mt-4 pt-4 border-t border-space-700">
+    <div v-if="$slots.footer" class="mt-4 pt-4 border-t border-white/5">
       <slot name="footer" />
     </div>
   </div>

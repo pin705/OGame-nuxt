@@ -119,8 +119,8 @@ const handleUpgrade = async (type: BuildingType) => {
   <div class="space-y-6">
     <!-- Header -->
     <div>
-      <h1 class="text-2xl font-display font-bold">Công Trình</h1>
-      <p class="text-slate-400">Xây dựng và nâng cấp các công trình trên hành tinh của bạn</p>
+      <h1 class="text-2xl font-display font-bold text-gradient-cyan">Công Trình</h1>
+      <p class="text-neutral-500 mt-1">Xây dựng và nâng cấp các công trình trên hành tinh của bạn</p>
     </div>
 
     <!-- Category Tabs -->
@@ -128,11 +128,11 @@ const handleUpgrade = async (type: BuildingType) => {
       <button
         v-for="category in categories"
         :key="category.name"
-        class="flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200"
+        class="flex items-center gap-2 px-4 py-2.5 transition-all duration-200"
         :class="
           activeCategory === category.name
-            ? 'bg-primary-500/20 text-primary-400 border border-primary-500/30'
-            : 'bg-space-800/50 text-slate-400 border border-space-700 hover:bg-space-700'
+            ? 'neo-btn'
+            : 'neo-btn-ghost'
         "
         @click="activeCategory = category.name"
       >
@@ -142,29 +142,31 @@ const handleUpgrade = async (type: BuildingType) => {
     </div>
 
     <!-- Warning if something is upgrading -->
-    <div v-if="isAnyUpgrading" class="glass-card p-4 border-l-4 border-accent-500">
+    <div v-if="isAnyUpgrading" class="neo-card p-4 border-l-2 border-warning-400">
       <div class="flex items-center gap-3">
-        <IconsThoiGian class="w-6 h-6 text-accent-400 animate-pulse" />
+        <div class="w-10 h-10 neo-card flex items-center justify-center border-warning-400/30 pulse-neon">
+          <IconsThoiGian class="w-5 h-5 text-warning-400" />
+        </div>
         <div class="flex-1">
-          <p class="font-medium text-slate-200">Đang nâng cấp: {{ BUILDINGS[buildQueue.building.type as BuildingType]?.name }}</p>
-          <p class="text-sm text-slate-400">
-            Còn {{ Math.floor(buildQueue.building.remainingSeconds / 60) }}m {{ buildQueue.building.remainingSeconds % 60 }}s
+          <p class="font-display font-semibold">Đang nâng cấp: {{ BUILDINGS[buildQueue.building.type as BuildingType]?.name }}</p>
+          <p class="text-sm text-neutral-500">
+            Còn <span class="text-warning-400 font-mono">{{ Math.floor(buildQueue.building.remainingSeconds / 60) }}m {{ buildQueue.building.remainingSeconds % 60 }}s</span>
           </p>
         </div>
       </div>
     </div>
 
     <!-- Error Message -->
-    <div v-if="upgradeError" class="glass-card p-4 border-l-4 border-red-500">
+    <div v-if="upgradeError" class="neo-card p-4 border-l-2 border-alert-400">
       <div class="flex items-center gap-3">
-        <IconsCanhBao class="w-6 h-6 text-red-400" />
-        <p class="text-red-400">{{ upgradeError }}</p>
+        <IconsCanhBao class="w-6 h-6 text-alert-400" />
+        <p class="text-alert-400">{{ upgradeError }}</p>
       </div>
     </div>
 
     <!-- Loading -->
     <div v-if="isLoading && !currentPlanet" class="flex items-center justify-center py-12">
-      <div class="animate-spin w-8 h-8 border-2 border-primary-500 border-t-transparent rounded-full"></div>
+      <div class="loading-spinner"></div>
     </div>
 
     <!-- Buildings Grid -->
@@ -172,60 +174,60 @@ const handleUpgrade = async (type: BuildingType) => {
       <div
         v-for="building in filteredBuildings"
         :key="building.type"
-        class="glass-card p-4 hover:border-primary-500/50 transition-all"
+        class="neo-card neo-card-hover p-4"
       >
         <div class="flex items-center gap-4 mb-4">
-          <div class="w-12 h-12 rounded-lg bg-space-700 flex items-center justify-center">
-            <IconsMoKhoang class="w-8 h-8 text-primary-400" />
+          <div class="w-12 h-12 neo-card flex items-center justify-center border-primary-500/20">
+            <IconsMoKhoang class="w-6 h-6 text-primary-500" />
           </div>
-          <div class="flex-1">
-            <h4 class="font-medium">{{ BUILDINGS[building.type as BuildingType]?.name || building.type }}</h4>
-            <p class="text-sm text-slate-400">Cấp {{ building.level }}</p>
+          <div class="flex-1 min-w-0">
+            <h4 class="font-display font-semibold truncate">{{ BUILDINGS[building.type as BuildingType]?.name || building.type }}</h4>
+            <p class="text-sm text-neutral-500">Cấp <span class="text-primary-500 font-mono">{{ building.level }}</span></p>
           </div>
         </div>
 
         <!-- Cost Display -->
-        <div class="text-xs text-slate-400 mb-3 space-y-1">
-          <div class="flex justify-between">
-            <span>Chi phí nâng cấp:</span>
-          </div>
-          <div class="flex gap-3">
-            <span class="flex items-center gap-1">
-              <IconsTinhThach class="w-3 h-3" />
+        <div class="text-xs mb-4 space-y-2">
+          <div class="text-neutral-500 uppercase tracking-wider font-display">Chi phí nâng cấp:</div>
+          <div class="flex gap-3 font-mono">
+            <span class="flex items-center gap-1 text-neutral-400">
+              <IconsTinhThach class="w-3.5 h-3.5" />
               {{ formatNumber(calculateBuildingCost(building.type as BuildingType, building.level + 1).tinhThach) }}
             </span>
-            <span class="flex items-center gap-1">
-              <IconsNangLuong class="w-3 h-3" />
+            <span class="flex items-center gap-1 text-primary-500">
+              <IconsNangLuong class="w-3.5 h-3.5" />
               {{ formatNumber(calculateBuildingCost(building.type as BuildingType, building.level + 1).nangLuongVuTru) }}
             </span>
-            <span class="flex items-center gap-1">
-              <IconsHonThach class="w-3 h-3" />
+            <span class="flex items-center gap-1 text-success-400">
+              <IconsHonThach class="w-3.5 h-3.5" />
               {{ formatNumber(calculateBuildingCost(building.type as BuildingType, building.level + 1).honThach) }}
             </span>
           </div>
         </div>
 
         <button
-          class="w-full py-2 rounded-lg text-sm font-medium transition-all"
+          class="w-full py-2.5 text-sm font-display font-medium uppercase tracking-wider transition-all"
           :class="canAffordBuilding(building.type as BuildingType, building.level) && !isAnyUpgrading
-            ? 'bg-primary-500/20 text-primary-400 hover:bg-primary-500/30 border border-primary-500/30'
-            : 'bg-space-700/50 text-slate-500 cursor-not-allowed'
+            ? 'neo-btn-success'
+            : 'neo-btn-ghost opacity-50 cursor-not-allowed'
           "
           :disabled="!canAffordBuilding(building.type as BuildingType, building.level) || isAnyUpgrading"
           @click="handleUpgrade(building.type as BuildingType)"
         >
           <span class="flex items-center justify-center gap-2">
             <IconsNangCap class="w-4 h-4" />
-            Nâng cấp lên {{ building.level + 1 }}
+            Nâng lên cấp {{ building.level + 1 }}
           </span>
         </button>
       </div>
     </div>
 
     <!-- Empty State -->
-    <div v-if="filteredBuildings.length === 0" class="glass-card p-12 text-center">
-      <IconsTrungTamChiHuy class="w-16 h-16 mx-auto mb-4 text-slate-600" />
-      <p class="text-slate-400">Không có công trình nào trong danh mục này.</p>
+    <div v-if="filteredBuildings.length === 0" class="neo-card p-12 text-center">
+      <div class="w-16 h-16 neo-card flex items-center justify-center mx-auto mb-4 border-neutral-500/20">
+        <IconsTrungTamChiHuy class="w-8 h-8 text-neutral-500" />
+      </div>
+      <p class="text-neutral-500">Không có công trình nào trong danh mục này.</p>
     </div>
   </div>
 </template>
