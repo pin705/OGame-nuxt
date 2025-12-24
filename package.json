@@ -1,0 +1,35 @@
+{
+  "name": "thon-phe-tinh-khong",
+  "version": "0.1.0",
+  "description": "Space strategy game inspired by OGame with Swallowed Star storyline",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "nuxt dev",
+    "build": "nuxt build",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "typecheck": "nuxt typecheck",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@nuxt/icon": "^1.0.0",
+    "nuxt": "^3.14.0",
+    "nuxt-mongoose": "^1.0.6",
+    "vue": "^3.5.0",
+    "vue-router": "^4.4.0"
+  },
+  "devDependencies": {
+    "@iconify-json/mdi": "^1.2.3",
+    "@nuxt/eslint": "^0.6.0",
+    "@nuxtjs/tailwindcss": "^6.12.0",
+    "@types/node": "^22.0.0",
+    "eslint": "^9.14.0",
+    "typescript": "^5.6.0",
+    "vue-tsc": "^3.2.1"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
