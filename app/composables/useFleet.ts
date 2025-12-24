@@ -2,6 +2,43 @@
 export const useFleet = () => {
   const fleets = useState<any[]>('fleets', () => [])
   const isLoading = useState<boolean>('fleetLoading', () => false)
+  const fleetCountdowns = useState<Record<string, number>>('fleetCountdowns', () => ({}))
+  
+  // Countdown ticker
+  let tickerInterval: ReturnType<typeof setInterval> | null = null
+
+  // Start countdown ticker
+  const startTicker = () => {
+    if (tickerInterval) return
+    tickerInterval = setInterval(() => {
+      const keys = Object.keys(fleetCountdowns.value)
+      keys.forEach(key => {
+        if (fleetCountdowns.value[key] > 0) {
+          fleetCountdowns.value[key]--
+        }
+      })
+    }, 1000)
+  }
+
+  // Stop ticker
+  const stopTicker = () => {
+    if (tickerInterval) {
+      clearInterval(tickerInterval)
+      tickerInterval = null
+    }
+  }
+
+  // Update countdowns from fleets data
+  const updateCountdowns = () => {
+    const now = Date.now()
+    fleets.value.forEach((fleet: any) => {
+      const targetTime = fleet.isReturning && fleet.returnTime
+        ? new Date(fleet.returnTime).getTime()
+        : new Date(fleet.arrivalTime).getTime()
+      const remaining = Math.max(0, Math.floor((targetTime - now) / 1000))
+      fleetCountdowns.value[fleet._id] = remaining
+    })
+  }
 
   // Fetch all active fleets
   const fetchFleets = async () => {
@@ -10,6 +47,8 @@ export const useFleet = () => {
       const response = await $fetch('/api/game/fleet')
       if (response?.success) {
         fleets.value = response.data.fleets
+        updateCountdowns()
+        startTicker()
       }
     } catch (error) {
       console.error('Failed to fetch fleets:', error)
@@ -60,37 +99,39 @@ export const useFleet = () => {
     }
   }
 
-  // Get fleet countdown timer
+  // Get fleet countdown - now reactive
   const getFleetCountdown = (fleet: any) => {
-    if (!fleet) return null
+    if (!fleet) return '00:00:00'
+    const seconds = fleetCountdowns.value[fleet._id] || 0
+    const h = Math.floor(seconds / 3600)
+    const m = Math.floor((seconds % 3600) / 60)
+    const s = seconds % 60
+    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
+  }
 
-    const now = Date.now()
-    let targetTime: number
-    
-    if (fleet.isReturning && fleet.returnTime) {
-      targetTime = new Date(fleet.returnTime).getTime()
-    } else {
-      targetTime = new Date(fleet.arrivalTime).getTime()
-    }
-
-    const remainingMs = Math.max(0, targetTime - now)
-    const hours = Math.floor(remainingMs / 3600000)
-    const minutes = Math.floor((remainingMs % 3600000) / 60000)
-    const seconds = Math.floor((remainingMs % 60000) / 1000)
-
-    return {
-      remainingMs,
-      formatted: `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`,
-      isComplete: remainingMs <= 0,
-    }
+  // Format time in Vietnamese
+  const getFleetCountdownVi = (fleet: any) => {
+    if (!fleet) return 'Đã đến'
+    const seconds = fleetCountdowns.value[fleet._id] || 0
+    if (seconds <= 0) return 'Đã đến'
+    const h = Math.floor(seconds / 3600)
+    const m = Math.floor((seconds % 3600) / 60)
+    const s = seconds % 60
+    if (h > 0) return `${h}h ${m}m ${s}s`
+    if (m > 0) return `${m}m ${s}s`
+    return `${s}s`
   }
 
   return {
     fleets,
     isLoading,
+    fleetCountdowns,
     fetchFleets,
     sendFleet,
     recallFleet,
     getFleetCountdown,
+    getFleetCountdownVi,
+    startTicker,
+    stopTicker,
   }
 }

@@ -12,22 +12,38 @@ const route = useRoute()
 const router = useRouter()
 const auth = useAuth()
 const game = useGame()
+const countdown = useCountdown()
 
 // Navigation items with component references
 const navigation = [
+  { name: 'Tổng quan', shortName: 'Tổng quan', href: '/game/overview', iconType: 'dashboard' },
+  { name: 'Công trình', shortName: 'Xây dựng', href: '/game/buildings', iconType: 'building' },
+  { name: 'Nghiên cứu', shortName: 'Nghiên cứu', href: '/game/research', iconType: 'research' },
+  { name: 'Xưởng tàu', shortName: 'Xưởng tàu', href: '/game/shipyard', iconType: 'shipyard' },
+  { name: 'Hạm đội', shortName: 'Hạm đội', href: '/game/fleet', iconType: 'fleet' },
+  { name: 'Thiên hà', shortName: 'Thiên hà', href: '/game/galaxy', iconType: 'galaxy' },
+]
+
+// Mobile bottom nav (key items only)
+const mobileNav = [
   { name: 'Tổng quan', href: '/game/overview', iconType: 'dashboard' },
-  { name: 'Công trình', href: '/game/buildings', iconType: 'building' },
-  { name: 'Nghiên cứu', href: '/game/research', iconType: 'research' },
+  { name: 'Xây dựng', href: '/game/buildings', iconType: 'building' },
   { name: 'Xưởng tàu', href: '/game/shipyard', iconType: 'shipyard' },
   { name: 'Hạm đội', href: '/game/fleet', iconType: 'fleet' },
-  { name: 'Thiên hà', href: '/game/galaxy', iconType: 'galaxy' },
+  { name: 'Thêm', href: '', iconType: 'menu' },
 ]
 
 const isSidebarOpen = ref(true)
 const isMobileMenuOpen = ref(false)
+const isMoreMenuOpen = ref(false)
 const isInitialized = ref(false)
 
 const isActiveRoute = (href: string) => route.path === href
+
+// Handle "More" menu toggle
+const toggleMoreMenu = () => {
+  isMoreMenuOpen.value = !isMoreMenuOpen.value
+}
 
 // Initialize game on mount
 onMounted(async () => {
@@ -38,6 +54,19 @@ onMounted(async () => {
   }
   await game.initGame()
   isInitialized.value = true
+  
+  // Start countdown ticker
+  countdown.startTicker()
+  countdown.registerFromQueue(game.buildQueue.value)
+})
+
+// Watch buildQueue changes to update countdowns
+watch(() => game.buildQueue.value, (newQueue) => {
+  countdown.registerFromQueue(newQueue)
+}, { deep: true })
+
+onUnmounted(() => {
+  countdown.stopTicker()
 })
 
 // Resources from current planet
@@ -110,78 +139,94 @@ const handleLogout = async () => {
 
     <!-- Sidebar -->
     <aside
-      class="fixed inset-y-0 left-0 z-40 w-60 bg-space-800/90 backdrop-blur-xl border-r border-white/5 transform transition-transform duration-300 lg:translate-x-0"
+      class="fixed inset-y-0 left-0 z-40 w-64 transform transition-transform duration-300 lg:translate-x-0"
       :class="{
         'translate-x-0': isMobileMenuOpen,
         '-translate-x-full': !isMobileMenuOpen && !isSidebarOpen,
       }"
     >
-      <div class="flex flex-col h-full">
-        <!-- Logo -->
-        <div class="p-5 border-b border-white/5">
-          <NuxtLink to="/game/overview" class="flex items-center gap-3 group">
-            <div class="w-10 h-10 neo-card flex items-center justify-center border-primary-500/50 group-hover:glow-cyan transition-all">
-              <IconsTenLua class="w-5 h-5 text-primary-500" />
-            </div>
-            <div>
-              <h1 class="font-display font-bold text-lg text-gradient-cyan">
-                THÔN PHỆ
-              </h1>
-              <p class="text-xs text-neutral-500 tracking-widest uppercase">Tinh Không</p>
-            </div>
-          </NuxtLink>
-        </div>
+      <!-- Sidebar inner with glassmorphism -->
+      <div class="h-full bg-[#0D1117]/95 backdrop-blur-2xl border-r border-[rgba(0,209,255,0.15)]">
+        <div class="flex flex-col h-full">
+          <!-- Logo -->
+          <div class="p-5 border-b border-[rgba(0,209,255,0.1)]">
+            <NuxtLink to="/game/overview" class="flex items-center gap-3 group">
+              <div class="w-11 h-11 relative">
+                <!-- Neon ring effect -->
+                <div class="absolute inset-0 rounded-lg border border-[#00D1FF]/60 group-hover:border-[#00D1FF] transition-colors" />
+                <div class="absolute inset-0 rounded-lg bg-[#00D1FF]/5 group-hover:bg-[#00D1FF]/15 transition-colors" />
+                <div class="absolute inset-0 flex items-center justify-center">
+                  <IconsTenLua class="w-5 h-5 text-[#00D1FF]" />
+                </div>
+              </div>
+              <div>
+                <h1 class="font-display font-bold text-lg tracking-wider text-[#00D1FF] drop-shadow-[0_0_10px_rgba(0,209,255,0.5)]">
+                  THÔN PHỆ
+                </h1>
+                <p class="text-[10px] text-neutral-500 tracking-[0.25em] uppercase">Tinh Không</p>
+              </div>
+            </NuxtLink>
+          </div>
 
-        <!-- Navigation -->
-        <nav class="flex-1 py-4 overflow-y-auto">
-          <NuxtLink
-            v-for="item in navigation"
-            :key="item.href"
-            :to="item.href"
-            class="neo-nav-item"
-            :class="{ 'active': isActiveRoute(item.href) }"
-            @click="isMobileMenuOpen = false"
-          >
-            <IconsTrungTamChiHuy v-if="item.iconType === 'dashboard'" class="icon" />
-            <IconsMoKhoang v-else-if="item.iconType === 'building'" class="icon" />
-            <IconsNghienCuu v-else-if="item.iconType === 'research'" class="icon" />
-            <IconsXuongDongTau v-else-if="item.iconType === 'shipyard'" class="icon" />
-            <IconsHamDoi v-else-if="item.iconType === 'fleet'" class="icon" />
-            <IconsThienHa v-else-if="item.iconType === 'galaxy'" class="icon" />
-            <span class="font-medium tracking-wide">{{ item.name }}</span>
-          </NuxtLink>
-        </nav>
+          <!-- Navigation -->
+          <nav class="flex-1 py-3 px-2 overflow-y-auto space-y-0.5">
+            <NuxtLink
+              v-for="item in navigation"
+              :key="item.href"
+              :to="item.href"
+              class="group flex items-center uppercase gap-3 px-3 py-2.5 rounded-sm text-sm font-medium tracking-wide transition-all duration-200"
+              :class="isActiveRoute(item.href) 
+                ? 'bg-[#00D1FF]/15 text-[#00D1FF] border-l-2 border-[#00D1FF] shadow-[inset_0_0_20px_rgba(0,209,255,0.1)]' 
+                : 'text-neutral-400 hover:text-white hover:bg-white/5 border-l-2 border-transparent hover:border-[#00D1FF]/30'"
+              @click="isMobileMenuOpen = false"
+            >
+              <span class="w-5 h-5 flex items-center justify-center" :class="isActiveRoute(item.href) ? 'text-[#00D1FF] drop-shadow-[0_0_8px_rgba(0,209,255,0.7)]' : 'text-neutral-500 group-hover:text-[#00D1FF]/70'">
+                <IconsTrungTamChiHuy v-if="item.iconType === 'dashboard'" class="w-5 h-5" />
+                <IconsMoKhoang v-else-if="item.iconType === 'building'" class="w-5 h-5" />
+                <IconsNghienCuu v-else-if="item.iconType === 'research'" class="w-5 h-5" />
+                <IconsXuongDongTau v-else-if="item.iconType === 'shipyard'" class="w-5 h-5" />
+                <IconsHamDoi v-else-if="item.iconType === 'fleet'" class="w-5 h-5" />
+                <IconsThienHa v-else-if="item.iconType === 'galaxy'" class="w-5 h-5" />
+              </span>
+              <span>{{ item.name }}</span>
+              <!-- Active indicator glow -->
+              <span v-if="isActiveRoute(item.href)" class="ml-auto w-1.5 h-1.5 rounded-full bg-[#00D1FF] shadow-[0_0_8px_#00D1FF]" />
+            </NuxtLink>
+          </nav>
 
-        <!-- Footer -->
-        <div class="p-4 border-t border-white/5">
-          <NuxtLink
-            to="/game/settings"
-            class="neo-nav-item"
-            :class="{ 'active': isActiveRoute('/game/settings') }"
-          >
-            <IconsCaiDat class="icon" />
-            <span>Cài đặt</span>
-          </NuxtLink>
-          <button
-            class="flex items-center gap-3 px-4 py-3 w-full text-sm font-medium text-alert-400 hover:bg-alert-400/10 transition-colors border-l-2 border-transparent hover:border-alert-400/50"
-            @click="handleLogout"
-          >
-            <IconsQuayLai class="w-5 h-5" />
-            <span>Đăng xuất</span>
-          </button>
+          <!-- Footer -->
+          <div class="p-3 border-t border-[rgba(0,209,255,0.1)]">
+            <NuxtLink
+              to="/game/settings"
+              class="group flex items-center gap-3 px-3 py-2.5 rounded-sm text-sm font-medium tracking-wide transition-all duration-200"
+              :class="isActiveRoute('/game/settings') 
+                ? 'bg-[#00D1FF]/15 text-[#00D1FF] border-l-2 border-[#00D1FF]' 
+                : 'text-neutral-400 hover:text-white hover:bg-white/5 border-l-2 border-transparent'"
+            >
+              <IconsCaiDat class="w-5 h-5" :class="isActiveRoute('/game/settings') ? 'text-[#00D1FF]' : 'text-neutral-500 group-hover:text-[#00D1FF]/70'" />
+              <span>Cài đặt</span>
+            </NuxtLink>
+            <button
+              class="flex items-center gap-3 px-3 py-2.5 w-full rounded-sm text-sm font-medium text-[#FF3366] hover:bg-[#FF3366]/10 transition-all border-l-2 border-transparent hover:border-[#FF3366]/50"
+              @click="handleLogout"
+            >
+              <IconsQuayLai class="w-5 h-5" />
+              <span>Đăng xuất</span>
+            </button>
+          </div>
         </div>
       </div>
     </aside>
 
     <!-- Overlay for mobile -->
     <div
-      v-if="isMobileMenuOpen"
+      v-if="isMobileMenuOpen || isMoreMenuOpen"
       class="fixed inset-0 z-30 bg-space-950/80 backdrop-blur-sm lg:hidden"
-      @click="isMobileMenuOpen = false"
+      @click="isMobileMenuOpen = false; isMoreMenuOpen = false"
     />
 
     <!-- Main content -->
-    <main class="lg:ml-60 relative z-10 min-h-screen">
+    <main class="lg:ml-64 relative z-10 min-h-screen pb-20 lg:pb-0">
       <!-- Loading state -->
       <div v-if="!isInitialized" class="flex items-center justify-center min-h-screen">
         <div class="text-center">
@@ -194,9 +239,9 @@ const handleLogout = async () => {
       </div>
       
       <template v-else>
-        <!-- Top bar with resources -->
-        <header class="sticky top-0 z-20 bg-space-900/80 backdrop-blur-xl border-b border-white/5">
-          <div class="px-4 py-3">
+        <!-- Top bar with resources (Mobile optimized) -->
+        <header class="sticky top-0 z-20 bg-[#0D1117]/95 backdrop-blur-xl border-b border-[rgba(0,209,255,0.1)]">
+          <div class="px-3 py-2">
             <GameResourceBar
               :tinh-thach="resources.tinhThach"
               :nang-luong-vu-tru="resources.nangLuongVuTru"
@@ -205,15 +250,112 @@ const handleLogout = async () => {
               :dien-nang-max="resources.dienNangMax"
               show-production
               :production="production"
+              compact
             />
           </div>
         </header>
 
         <!-- Page content -->
-        <div class="p-4 md:p-6">
+        <div class="p-3 md:p-6">
           <slot />
         </div>
       </template>
     </main>
+
+    <!-- Mobile Bottom Tab Bar -->
+    <nav class="fixed bottom-0 left-0 right-0 z-50 lg:hidden">
+      <!-- More menu popup -->
+      <div 
+        v-if="isMoreMenuOpen"
+        class="absolute bottom-full left-0 right-0 mb-1 mx-2 bg-[#0D1117]/98 backdrop-blur-xl rounded-lg border border-[rgba(0,209,255,0.2)] shadow-2xl overflow-hidden"
+      >
+        <NuxtLink
+          to="/game/research"
+          class="flex items-center gap-3 px-4 py-3 text-sm font-medium transition-all"
+          :class="isActiveRoute('/game/research') ? 'bg-[#00D1FF]/15 text-[#00D1FF]' : 'text-neutral-300 hover:bg-white/5'"
+          @click="isMoreMenuOpen = false"
+        >
+          <IconsNghienCuu class="w-5 h-5" />
+          <span>Nghiên cứu</span>
+        </NuxtLink>
+        <NuxtLink
+          to="/game/galaxy"
+          class="flex items-center gap-3 px-4 py-3 text-sm font-medium transition-all"
+          :class="isActiveRoute('/game/galaxy') ? 'bg-[#00D1FF]/15 text-[#00D1FF]' : 'text-neutral-300 hover:bg-white/5'"
+          @click="isMoreMenuOpen = false"
+        >
+          <IconsThienHa class="w-5 h-5" />
+          <span>Thiên hà</span>
+        </NuxtLink>
+        <NuxtLink
+          to="/game/settings"
+          class="flex items-center gap-3 px-4 py-3 text-sm font-medium transition-all"
+          :class="isActiveRoute('/game/settings') ? 'bg-[#00D1FF]/15 text-[#00D1FF]' : 'text-neutral-300 hover:bg-white/5'"
+          @click="isMoreMenuOpen = false"
+        >
+          <IconsCaiDat class="w-5 h-5" />
+          <span>Cài đặt</span>
+        </NuxtLink>
+        <button
+          class="flex items-center gap-3 px-4 py-3 w-full text-sm font-medium text-[#FF3366] hover:bg-[#FF3366]/10 transition-all"
+          @click="handleLogout"
+        >
+          <IconsQuayLai class="w-5 h-5" />
+          <span>Đăng xuất</span>
+        </button>
+      </div>
+
+      <!-- Tab bar -->
+      <div class="h-16 bg-[#0D1117]/98 backdrop-blur-xl border-t border-[rgba(0,209,255,0.15)] flex items-center justify-around px-1 safe-area-pb">
+        <template v-for="item in mobileNav" :key="item.href || item.name">
+          <!-- Regular nav items -->
+          <NuxtLink
+            v-if="item.href"
+            :to="item.href"
+            class="flex flex-col items-center justify-center w-14 h-14 rounded-lg transition-all duration-200"
+            :class="isActiveRoute(item.href) 
+              ? 'text-[#00D1FF]' 
+              : 'text-neutral-500 active:bg-white/10'"
+          >
+            <span class="relative">
+              <IconsTrungTamChiHuy v-if="item.iconType === 'dashboard'" class="w-6 h-6" />
+              <IconsMoKhoang v-else-if="item.iconType === 'building'" class="w-6 h-6" />
+              <IconsXuongDongTau v-else-if="item.iconType === 'shipyard'" class="w-6 h-6" />
+              <IconsHamDoi v-else-if="item.iconType === 'fleet'" class="w-6 h-6" />
+              <!-- Active glow -->
+              <span 
+                v-if="isActiveRoute(item.href)" 
+                class="absolute -inset-1 bg-[#00D1FF]/20 blur-md rounded-full"
+              />
+            </span>
+            <span class="text-[10px] mt-1 font-medium tracking-wide">{{ item.name }}</span>
+          </NuxtLink>
+          
+          <!-- More button -->
+          <button
+            v-else
+            class="flex flex-col items-center justify-center w-14 h-14 rounded-lg transition-all duration-200"
+            :class="isMoreMenuOpen ? 'text-[#00D1FF]' : 'text-neutral-500 active:bg-white/10'"
+            @click="toggleMoreMenu"
+          >
+            <span class="relative">
+              <IconsMenu class="w-6 h-6" />
+              <span 
+                v-if="isMoreMenuOpen" 
+                class="absolute -inset-1 bg-[#00D1FF]/20 blur-md rounded-full"
+              />
+            </span>
+            <span class="text-[10px] mt-1 font-medium tracking-wide">{{ item.name }}</span>
+          </button>
+        </template>
+      </div>
+    </nav>
   </div>
 </template>
+
+<style scoped>
+/* Safe area for notched phones */
+.safe-area-pb {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+</style>

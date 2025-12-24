@@ -8,6 +8,7 @@ definePageMeta({
 })
 
 const { currentPlanet, buildQueue, isLoading, startResearch } = useGame()
+const countdown = useCountdown()
 
 // Get research data from current planet
 const researches = computed(() => {
@@ -33,8 +34,10 @@ const resources = computed(() => currentPlanet.value?.resources || {
 const labLevel = computed(() => currentPlanet.value?.buildings?.vienNghienCuu || 1)
 
 // Check build queue for active research
+// API returns: { building: {...}, research: {...}, ships: [...], defenses: [...] }
 const researchQueue = computed(() => {
-  return buildQueue.value?.find((q) => q.type === 'RESEARCH' && !q.isComplete)
+  const queue = buildQueue.value?.research
+  return queue && !queue.isComplete ? queue : null
 })
 
 const categories = [
@@ -143,17 +146,24 @@ const handleResearch = async (type: ResearchType, currentLevel: number) => {
     </div>
 
     <!-- Warning if researching -->
-    <div v-if="isAnyResearching" class="neo-card p-4 border-l-2 border-primary-500">
+    <div v-if="isAnyResearching" class="neo-card p-3 md:p-4 border-l-2 border-primary-500">
       <div class="flex items-center gap-3">
-        <IconsNghienCuu class="w-6 h-6 text-primary-500 neo-pulse" />
-        <div class="flex-1">
-          <p class="font-medium">
-            Đang nghiên cứu {{ RESEARCHES[researchQueue?.researchType as ResearchType]?.name || 'Công nghệ' }}
+        <IconsNghienCuu class="w-6 h-6 text-primary-500 animate-pulse flex-shrink-0" />
+        <div class="flex-1 min-w-0">
+          <p class="font-medium truncate">
+            Đang nghiên cứu {{ RESEARCHES[researchQueue?.type as ResearchType]?.name || 'Công nghệ' }}
           </p>
           <p class="text-sm text-neutral-500">
-            Còn <span class="text-warning-400 font-mono">{{ Math.floor((researchQueue?.remainingSeconds || 0) / 60) }}m {{ (researchQueue?.remainingSeconds || 0) % 60 }}s</span>
+            Còn <span class="text-warning-400 font-mono text-base">{{ countdown.researchFormattedVi.value }}</span>
           </p>
         </div>
+      </div>
+      <!-- Progress bar -->
+      <div class="mt-3 h-1 bg-neutral-800 rounded-full overflow-hidden">
+        <div 
+          class="h-full bg-gradient-to-r from-primary-500 to-primary-400 transition-all duration-1000"
+          :style="{ width: `${100 - (countdown.researchRemaining.value / (researchQueue?.remainingSeconds || 1)) * 100}%` }"
+        />
       </div>
     </div>
 

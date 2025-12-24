@@ -15,6 +15,7 @@ definePageMeta({
 
 const { player } = useAuth()
 const { currentPlanet, buildQueue, processQueue, isLoading } = useGame()
+const countdown = useCountdown()
 
 // Auto-refresh data
 const refreshInterval = ref<NodeJS.Timeout | null>(null)
@@ -177,22 +178,29 @@ const getRankName = (rank: string) => {
       </div>
 
       <!-- Active Build Queue -->
-      <div v-if="activeBuilding" class="neo-card p-4 border-l-2 border-warning-400">
-        <div class="flex items-center gap-4">
-          <div class="w-10 h-10 neo-card flex items-center justify-center border-warning-400/30 pulse-neon">
-            <IconsNangCap class="w-5 h-5 text-warning-400" />
+      <div v-if="activeBuilding" class="neo-card p-3 md:p-4 border-l-2 border-warning-400">
+        <div class="flex items-center gap-3 md:gap-4">
+          <div class="w-10 h-10 neo-card flex items-center justify-center border-warning-400/30 flex-shrink-0">
+            <IconsNangCap class="w-5 h-5 text-warning-400 animate-pulse" />
           </div>
-          <div class="flex-1">
-            <p class="font-display font-semibold">Đang nâng cấp: {{ BUILDINGS[activeBuilding.type as BuildingType]?.name || activeBuilding.type }}</p>
+          <div class="flex-1 min-w-0">
+            <p class="font-display font-semibold truncate text-sm md:text-base">
+              Đang nâng cấp: {{ BUILDINGS[activeBuilding.type as BuildingType]?.name || activeBuilding.type }}
+            </p>
             <p class="text-sm text-neutral-500">Cấp {{ activeBuilding.level }}</p>
           </div>
-          <div class="text-right">
-            <p class="font-mono text-warning-400 text-lg">
-              {{ Math.floor(activeBuilding.remainingSeconds / 3600) }}h 
-              {{ Math.floor((activeBuilding.remainingSeconds % 3600) / 60) }}m 
-              {{ activeBuilding.remainingSeconds % 60 }}s
+          <div class="text-right flex-shrink-0">
+            <p class="font-mono text-warning-400 text-sm md:text-lg">
+              {{ countdown.buildingFormattedVi.value }}
             </p>
           </div>
+        </div>
+        <!-- Progress bar -->
+        <div class="mt-3 h-1 bg-neutral-800 rounded-full overflow-hidden">
+          <div 
+            class="h-full bg-gradient-to-r from-warning-400 to-warning-500 transition-all duration-1000"
+            :style="{ width: `${100 - (countdown.buildingRemaining.value / (activeBuilding.remainingSeconds || 1)) * 100}%` }"
+          />
         </div>
       </div>
 

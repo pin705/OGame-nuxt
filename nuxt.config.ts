@@ -7,6 +7,8 @@ export default defineNuxtConfig({
     compatibilityVersion: 4,
   },
 
+  ssr: false,
+
   modules: [
     '@nuxtjs/tailwindcss',
     'nuxt-mongoose',

@@ -8,15 +8,16 @@ definePageMeta({
 })
 
 const { currentPlanet, buildQueue, buildShips, processQueue, isLoading } = useGame()
+const countdown = useCountdown()
 
 // Auto-refresh data
 const refreshInterval = ref<NodeJS.Timeout | null>(null)
 
 onMounted(async () => {
-  // Process queue and refresh every 5 seconds
+  // Process queue and refresh every 10 seconds
   refreshInterval.value = setInterval(async () => {
     await processQueue()
-  }, 5000)
+  }, 10000)
 })
 
 onUnmounted(() => {
@@ -28,9 +29,10 @@ onUnmounted(() => {
 // Get ships from planet
 const ships = computed(() => {
   const planetShips = currentPlanet.value?.planet?.ships || {}
+  const shipsArray = buildQueue.value?.ships || []
   // All ship types with current count
   return Object.values(ShipType).map(type => {
-    const shipQueue = buildQueue.value?.find((q: any) => q.type === 'SHIP' && q.shipType === type && !q.isComplete)
+    const shipQueue = shipsArray.find((q: any) => q.type === type && !q.isComplete)
     return {
       type,
       count: (planetShips as Record<string, number>)[type] || 0,
@@ -172,17 +174,24 @@ const handleBuild = async (type: ShipType) => {
     </div>
 
     <!-- Building Queue -->
-    <div v-if="shipBuildQueue" class="neo-card p-4 border-l-2 border-success-400">
+    <div v-if="shipBuildQueue" class="neo-card p-3 md:p-4 border-l-2 border-success-400">
       <div class="flex items-center gap-3">
-        <IconsXuongDongTau class="w-6 h-6 text-success-400 neo-pulse" />
-        <div class="flex-1">
-          <p class="font-medium">
+        <IconsXuongDongTau class="w-6 h-6 text-success-400 animate-pulse flex-shrink-0" />
+        <div class="flex-1 min-w-0">
+          <p class="font-medium truncate">
             Đang chế tạo {{ shipBuildQueue.count }} {{ SHIPS[shipBuildQueue.type as ShipType]?.name || shipBuildQueue.type }}
           </p>
           <p class="text-sm text-neutral-500">
-            Còn <span class="text-warning-400 font-mono">{{ Math.floor((shipBuildQueue.remainingSeconds || 0) / 60) }}m {{ (shipBuildQueue.remainingSeconds || 0) % 60 }}s</span>
+            Còn <span class="text-warning-400 font-mono text-base">{{ countdown.shipFormattedVi.value }}</span>
           </p>
         </div>
+      </div>
+      <!-- Progress bar -->
+      <div class="mt-3 h-1 bg-neutral-800 rounded-full overflow-hidden">
+        <div 
+          class="h-full bg-gradient-to-r from-success-400 to-success-500 transition-all duration-1000"
+          :style="{ width: `${100 - (countdown.shipRemaining.value / (shipBuildQueue.remainingSeconds || 1)) * 100}%` }"
+        />
       </div>
     </div>
 

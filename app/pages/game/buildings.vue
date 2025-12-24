@@ -8,15 +8,16 @@ definePageMeta({
 })
 
 const { currentPlanet, buildQueue, upgradeBuilding, processQueue, isLoading } = useGame()
+const countdown = useCountdown()
 
 // Auto-refresh data
 const refreshInterval = ref<NodeJS.Timeout | null>(null)
 
 onMounted(async () => {
-  // Process queue and refresh every 5 seconds
+  // Process queue and refresh every 10 seconds
   refreshInterval.value = setInterval(async () => {
     await processQueue()
-  }, 5000)
+  }, 10000)
 })
 
 onUnmounted(() => {
@@ -142,17 +143,26 @@ const handleUpgrade = async (type: BuildingType) => {
     </div>
 
     <!-- Warning if something is upgrading -->
-    <div v-if="isAnyUpgrading" class="neo-card p-4 border-l-2 border-warning-400">
+    <div v-if="isAnyUpgrading" class="neo-card p-3 md:p-4 border-l-2 border-warning-400">
       <div class="flex items-center gap-3">
-        <div class="w-10 h-10 neo-card flex items-center justify-center border-warning-400/30 pulse-neon">
-          <IconsThoiGian class="w-5 h-5 text-warning-400" />
+        <div class="w-10 h-10 neo-card flex items-center justify-center border-warning-400/30 flex-shrink-0">
+          <IconsThoiGian class="w-5 h-5 text-warning-400 animate-pulse" />
         </div>
-        <div class="flex-1">
-          <p class="font-display font-semibold">Đang nâng cấp: {{ BUILDINGS[buildQueue.building.type as BuildingType]?.name }}</p>
+        <div class="flex-1 min-w-0">
+          <p class="font-display font-semibold text-sm md:text-base truncate">
+            Đang nâng cấp: {{ BUILDINGS[buildQueue.building.type as BuildingType]?.name }}
+          </p>
           <p class="text-sm text-neutral-500">
-            Còn <span class="text-warning-400 font-mono">{{ Math.floor(buildQueue.building.remainingSeconds / 60) }}m {{ buildQueue.building.remainingSeconds % 60 }}s</span>
+            Còn <span class="text-warning-400 font-mono text-base">{{ countdown.buildingFormattedVi.value }}</span>
           </p>
         </div>
+      </div>
+      <!-- Progress bar -->
+      <div class="mt-3 h-1 bg-neutral-800 rounded-full overflow-hidden">
+        <div 
+          class="h-full bg-gradient-to-r from-warning-400 to-warning-500 transition-all duration-1000"
+          :style="{ width: `${100 - (countdown.buildingRemaining.value / (buildQueue.building.remainingSeconds || 1)) * 100}%` }"
+        />
       </div>
     </div>
 

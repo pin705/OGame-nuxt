@@ -9,11 +9,16 @@ definePageMeta({
 })
 
 const { currentPlanet, isLoading } = useGame()
-const { fleets, isLoading: fleetsLoading, fetchFleets, sendFleet, recallFleet, getFleetCountdown } = useFleet()
+const { fleets, isLoading: fleetsLoading, fetchFleets, sendFleet, recallFleet, getFleetCountdownVi, stopTicker } = useFleet()
 
 // Fetch fleets on mount
 onMounted(() => {
   fetchFleets()
+})
+
+// Cleanup ticker on unmount
+onUnmounted(() => {
+  stopTicker()
 })
 
 // Available ships on current planet
@@ -378,11 +383,11 @@ const handleRecallFleet = async (fleetId: string) => {
             </div>
 
             <!-- Time & Actions -->
-            <div class="text-right">
+            <div class="text-right flex-shrink-0">
               <p class="text-xs text-neutral-500">
                 {{ fleet.status === 'RETURNING' ? 'Về lúc' : 'Đến lúc' }}
               </p>
-              <p class="font-mono text-lg text-warning-400">{{ getFleetCountdown(fleet) }}</p>
+              <p class="font-mono text-sm md:text-lg text-warning-400">{{ getFleetCountdownVi(fleet) }}</p>
               <button 
                 v-if="fleet.status === 'DEPARTING'"
                 class="neo-btn-ghost text-xs text-alert-400 hover:bg-alert-400/10 mt-2 flex items-center gap-1"

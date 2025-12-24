@@ -13,11 +13,14 @@ interface Props {
     nangLuongVuTru: number
     honThach: number
   }
+  compact?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   dienNangMax: 0,
   showProduction: false,
+  compact: false,
+  production: () => ({ tinhThach: 0, nangLuongVuTru: 0, honThach: 0 }),
 })
 
 const energyStatus = computed(() => {
@@ -29,102 +32,109 @@ const energyStatus = computed(() => {
   return 'danger'
 })
 
-// Animation for counting up
-const displayValues = reactive({
-  tinhThach: 0,
-  nangLuongVuTru: 0,
-  honThach: 0,
-  dienNang: 0,
-})
-
-watch(
-  () => props.tinhThach,
-  (newVal) => { displayValues.tinhThach = newVal },
-  { immediate: true }
-)
-watch(
-  () => props.nangLuongVuTru,
-  (newVal) => { displayValues.nangLuongVuTru = newVal },
-  { immediate: true }
-)
-watch(
-  () => props.honThach,
-  (newVal) => { displayValues.honThach = newVal },
-  { immediate: true }
-)
-watch(
-  () => props.dienNang,
-  (newVal) => { displayValues.dienNang = newVal },
-  { immediate: true }
-)
+// Format for compact display
+const compactFormat = (num: number) => {
+  if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`
+  if (num >= 1000) return `${(num / 1000).toFixed(1)}K`
+  return formatNumber(num)
+}
 </script>
 
 <template>
-  <div class="resource-bar">
+  <!-- Compact Mobile Version -->
+  <div v-if="compact" class="resource-bar-compact">
+    <div class="flex items-center justify-between gap-2">
+      <!-- Tinh Thạch -->
+      <div class="resource-compact-item">
+        <IconsTinhThach class="w-4 h-4 text-neutral-400" />
+        <span class="resource-compact-value text-neutral-300">{{ compactFormat(tinhThach) }}</span>
+      </div>
+      
+      <!-- Năng Lượng Vũ Trụ -->
+      <div class="resource-compact-item">
+        <IconsNangLuong class="w-4 h-4 text-[#00D1FF]" />
+        <span class="resource-compact-value text-[#00D1FF]">{{ compactFormat(nangLuongVuTru) }}</span>
+      </div>
+      
+      <!-- Hồn Thạch -->
+      <div class="resource-compact-item">
+        <IconsHonThach class="w-4 h-4 text-[#00F59B]" />
+        <span class="resource-compact-value text-[#00F59B]">{{ compactFormat(honThach) }}</span>
+      </div>
+      
+      <!-- Điện Năng -->
+      <div class="resource-compact-item">
+        <IconsDienNang 
+          class="w-4 h-4"
+          :class="energyStatus === 'danger' ? 'text-[#FF4D4D] animate-pulse' : 'text-[#FFB800]'"
+        />
+        <span 
+          class="resource-compact-value"
+          :class="{
+            'text-[#FFB800]': energyStatus !== 'danger',
+            'text-[#FF4D4D]': energyStatus === 'danger'
+          }"
+        >
+          {{ compactFormat(dienNang) }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Full Desktop Version -->
+  <div v-else class="resource-bar">
     <div class="resource-bar-inner">
       <!-- Tinh Thạch (Metal) -->
       <div class="resource-item group">
         <div class="resource-icon resource-icon--metal">
-          <IconsTinhThach :size="22" />
-          <div class="resource-icon-glow resource-icon-glow--metal" />
+          <IconsTinhThach class="w-5 h-5" />
         </div>
         <div class="resource-info">
           <span class="resource-label">Tinh Thạch</span>
           <div class="resource-value-wrapper">
-            <span class="resource-value resource-value--metal">
-              {{ formatNumber(displayValues.tinhThach) }}
+            <span class="resource-value text-neutral-300">
+              {{ formatNumber(tinhThach) }}
             </span>
             <span v-if="showProduction && production" class="resource-production">
               +{{ formatNumber(production.tinhThach) }}/h
             </span>
           </div>
         </div>
-        <div class="resource-tooltip">
-          Khoáng sản cơ bản để xây dựng và sản xuất
-        </div>
       </div>
 
       <!-- Năng Lượng Vũ Trụ (Crystal) -->
       <div class="resource-item group">
         <div class="resource-icon resource-icon--crystal">
-          <IconsNangLuong :size="22" />
-          <div class="resource-icon-glow resource-icon-glow--crystal" />
+          <IconsNangLuong class="w-5 h-5" />
         </div>
         <div class="resource-info">
-          <span class="resource-label">Năng Lượng Vũ Trụ</span>
+          <span class="resource-label">NL Vũ Trụ</span>
           <div class="resource-value-wrapper">
-            <span class="resource-value resource-value--crystal">
-              {{ formatNumber(displayValues.nangLuongVuTru) }}
+            <span class="resource-value text-[#00D1FF]">
+              {{ formatNumber(nangLuongVuTru) }}
             </span>
             <span v-if="showProduction && production" class="resource-production">
               +{{ formatNumber(production.nangLuongVuTru) }}/h
             </span>
           </div>
         </div>
-        <div class="resource-tooltip">
-          Năng lượng tinh thuần từ vũ trụ
-        </div>
       </div>
 
       <!-- Hồn Thạch (Deuterium) -->
       <div class="resource-item group">
         <div class="resource-icon resource-icon--soul">
-          <IconsHonThach :size="22" />
-          <div class="resource-icon-glow resource-icon-glow--soul" />
+          <IconsHonThach class="w-5 h-5" />
         </div>
         <div class="resource-info">
           <span class="resource-label">Hồn Thạch</span>
           <div class="resource-value-wrapper">
-            <span class="resource-value resource-value--soul">
-              {{ formatNumber(displayValues.honThach) }}
+            <span class="resource-value text-[#00F59B]">
+              {{ formatNumber(honThach) }}
             </span>
             <span v-if="showProduction && production" class="resource-production">
               +{{ formatNumber(production.honThach) }}/h
             </span>
           </div>
-        </div>
-        <div class="resource-tooltip">
-          Năng lượng tinh thần quý hiếm
         </div>
       </div>
 
@@ -133,20 +143,11 @@ watch(
         <div
           class="resource-icon"
           :class="{
-            'resource-icon--energy': energyStatus === 'full' || energyStatus === 'normal',
-            'resource-icon--warning': energyStatus === 'warning',
+            'resource-icon--energy': energyStatus !== 'danger',
             'resource-icon--danger': energyStatus === 'danger',
           }"
         >
-          <IconsDienNang :size="22" />
-          <div
-            class="resource-icon-glow"
-            :class="{
-              'resource-icon-glow--energy': energyStatus === 'full' || energyStatus === 'normal',
-              'resource-icon-glow--warning': energyStatus === 'warning',
-              'resource-icon-glow--danger': energyStatus === 'danger',
-            }"
-          />
+          <IconsDienNang class="w-5 h-5" />
         </div>
         <div class="resource-info">
           <span class="resource-label">Điện Năng</span>
@@ -154,48 +155,51 @@ watch(
             <span
               class="resource-value"
               :class="{
-                'resource-value--energy': energyStatus === 'full' || energyStatus === 'normal',
-                'resource-value--warning': energyStatus === 'warning',
-                'resource-value--danger': energyStatus === 'danger',
+                'text-[#FFB800]': energyStatus !== 'danger',
+                'text-[#FF4D4D]': energyStatus === 'danger',
               }"
             >
-              {{ formatNumber(displayValues.dienNang) }}
-              <span v-if="dienNangMax > 0" class="resource-max">
+              {{ formatNumber(dienNang) }}
+              <span v-if="dienNangMax > 0" class="text-neutral-600">
                 / {{ formatNumber(dienNangMax) }}
               </span>
             </span>
           </div>
         </div>
-        <div class="resource-tooltip">
-          Năng lượng vận hành công trình
-        </div>
       </div>
-    </div>
-
-    <!-- Animated background particles -->
-    <div class="resource-bar-particles">
-      <div v-for="i in 6" :key="i" class="particle" :style="{ animationDelay: `${i * 0.5}s` }" />
     </div>
   </div>
 </template>
 
 <style scoped>
+/* Compact Mobile Bar */
+.resource-bar-compact {
+  @apply px-1;
+}
+
+.resource-compact-item {
+  @apply flex items-center gap-1.5 px-2 py-1 rounded;
+  background: rgba(22, 27, 34, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.resource-compact-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* Full Desktop Bar */
 .resource-bar {
-  @apply relative;
-  background: rgba(11, 14, 20, 0.9);
-  border-bottom: 1px solid rgba(0, 209, 255, 0.1);
+  @apply relative py-1;
 }
 
 .resource-bar-inner {
-  @apply flex flex-wrap items-center justify-center gap-6 md:gap-8 px-4 py-2;
-  position: relative;
-  z-index: 2;
+  @apply flex flex-wrap items-center justify-center gap-4 md:gap-6;
 }
 
 .resource-item {
-  @apply flex items-center gap-2.5 relative cursor-pointer;
-  padding: 4px 8px;
-  transition: all 0.2s ease;
+  @apply flex items-center gap-2 px-2 py-1 rounded transition-all duration-200;
 }
 
 .resource-item:hover {
@@ -203,41 +207,38 @@ watch(
 }
 
 .resource-icon {
-  @apply relative flex items-center justify-center;
-  width: 32px;
-  height: 32px;
-  border-radius: 2px;
+  @apply flex items-center justify-center w-8 h-8 rounded;
   transition: all 0.2s ease;
 }
 
 .resource-icon--metal {
   background: rgba(148, 163, 184, 0.1);
-  border: 1px solid rgba(148, 163, 184, 0.3);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  color: #9DA3AE;
 }
 
 .resource-icon--crystal {
   background: rgba(0, 209, 255, 0.1);
-  border: 1px solid rgba(0, 209, 255, 0.3);
+  border: 1px solid rgba(0, 209, 255, 0.2);
+  color: #00D1FF;
 }
 
 .resource-icon--soul {
   background: rgba(0, 245, 155, 0.1);
-  border: 1px solid rgba(0, 245, 155, 0.3);
+  border: 1px solid rgba(0, 245, 155, 0.2);
+  color: #00F59B;
 }
 
 .resource-icon--energy {
   background: rgba(255, 184, 0, 0.1);
-  border: 1px solid rgba(255, 184, 0, 0.3);
-}
-
-.resource-icon--warning {
-  background: rgba(255, 184, 0, 0.15);
-  border: 1px solid rgba(255, 184, 0, 0.5);
+  border: 1px solid rgba(255, 184, 0, 0.2);
+  color: #FFB800;
 }
 
 .resource-icon--danger {
   background: rgba(255, 77, 77, 0.15);
-  border: 1px solid rgba(255, 77, 77, 0.5);
+  border: 1px solid rgba(255, 77, 77, 0.3);
+  color: #FF4D4D;
   animation: pulse-danger 1.5s infinite;
 }
 
@@ -246,30 +247,15 @@ watch(
   50% { box-shadow: 0 0 8px rgba(255, 77, 77, 0.4); }
 }
 
-.resource-icon-glow {
-  @apply absolute inset-0 rounded-sm opacity-0 transition-opacity duration-200;
-}
-
-.group:hover .resource-icon-glow {
-  opacity: 1;
-}
-
-.resource-icon-glow--metal { box-shadow: 0 0 12px rgba(148, 163, 184, 0.4); }
-.resource-icon-glow--crystal { box-shadow: 0 0 12px rgba(0, 209, 255, 0.5); }
-.resource-icon-glow--soul { box-shadow: 0 0 12px rgba(0, 245, 155, 0.5); }
-.resource-icon-glow--energy { box-shadow: 0 0 12px rgba(255, 184, 0, 0.5); }
-.resource-icon-glow--warning { box-shadow: 0 0 12px rgba(255, 184, 0, 0.6); }
-.resource-icon-glow--danger { box-shadow: 0 0 12px rgba(255, 77, 77, 0.6); }
-
 .resource-info {
-  @apply flex flex-col gap-0.5;
+  @apply flex flex-col;
 }
 
 .resource-label {
   font-family: 'Orbitron', sans-serif;
-  font-size: 9px;
+  font-size: 8px;
   font-weight: 500;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #6E7681;
 }
@@ -280,89 +266,40 @@ watch(
 
 .resource-value {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
-}
-
-.resource-value--metal { color: #9DA3AE; }
-.resource-value--crystal { color: #00D1FF; text-shadow: 0 0 8px rgba(0, 209, 255, 0.5); }
-.resource-value--soul { color: #00F59B; text-shadow: 0 0 8px rgba(0, 245, 155, 0.5); }
-.resource-value--energy { color: #FFB800; text-shadow: 0 0 8px rgba(255, 184, 0, 0.5); }
-.resource-value--warning { color: #FFB800; }
-.resource-value--danger { color: #FF4D4D; text-shadow: 0 0 8px rgba(255, 77, 77, 0.5); }
-
-.resource-max {
-  color: #484F58;
-  font-weight: 400;
 }
 
 .resource-production {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 10px;
+  font-size: 9px;
   color: #00F59B;
-  text-shadow: 0 0 6px rgba(0, 245, 155, 0.4);
 }
 
-.resource-tooltip {
-  @apply absolute -bottom-10 left-1/2 transform -translate-x-1/2;
-  @apply px-3 py-1.5 text-xs whitespace-nowrap;
-  @apply opacity-0 invisible transition-all duration-200;
-  font-family: 'Rajdhani', sans-serif;
-  background: rgba(22, 27, 34, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 2px;
-  color: #9DA3AE;
-  z-index: 50;
-}
-
-.group:hover .resource-tooltip {
-  @apply opacity-100 visible;
-  transform: translateX(-50%) translateY(4px);
-}
-
-.resource-bar-particles {
-  @apply absolute inset-0 overflow-hidden pointer-events-none;
-  z-index: 1;
-}
-
-.particle {
-  @apply absolute w-0.5 h-0.5 rounded-full;
-  background: rgba(0, 209, 255, 0.6);
-  animation: float-particle 10s infinite linear;
-}
-
-.particle:nth-child(1) { left: 10%; animation-duration: 8s; }
-.particle:nth-child(2) { left: 25%; animation-duration: 10s; }
-.particle:nth-child(3) { left: 40%; animation-duration: 9s; }
-.particle:nth-child(4) { left: 55%; animation-duration: 11s; }
-.particle:nth-child(5) { left: 70%; animation-duration: 8.5s; }
-.particle:nth-child(6) { left: 85%; animation-duration: 9.5s; }
-
-@keyframes float-particle {
-  0% {
-    transform: translateY(100%) scale(0);
-    opacity: 0;
+/* Mobile responsive */
+@media (max-width: 640px) {
+  .resource-bar-inner {
+    @apply gap-2;
   }
-  10% {
-    opacity: 0.6;
+  
+  .resource-item {
+    @apply px-1.5 py-0.5;
   }
-  90% {
-    opacity: 0.6;
+  
+  .resource-icon {
+    @apply w-6 h-6;
   }
-  100% {
-    transform: translateY(-100%) scale(1);
-    opacity: 0;
+  
+  .resource-label {
+    font-size: 7px;
   }
-}
-
-/* Progress bar under resource bar */
-.resource-progress {
-  @apply absolute bottom-0 left-0 right-0 h-[3px];
-  background: rgba(22, 27, 34, 0.8);
-}
-
-.resource-progress-fill {
-  @apply h-full;
-  transition: width 0.5s ease;
+  
+  .resource-value {
+    font-size: 10px;
+  }
+  
+  .resource-production {
+    font-size: 8px;
+  }
 }
 </style>

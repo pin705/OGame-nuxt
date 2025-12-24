@@ -1,5 +1,5 @@
 import { requireAuth } from '~~/server/utils/auth'
-import { BuildingType } from '~/types/game'
+import { BuildingType, ResearchType } from '~/types/game'
 
 export default defineEventHandler(async (event) => {
   const auth = await requireAuth(event)
@@ -14,6 +14,7 @@ export default defineEventHandler(async (event) => {
 
   try {
     const planet = await PlanetSchema.findById(planetId)
+    const player = await PlayerSchema.findById(auth.playerId)
 
     if (!planet) {
       throw createError({
