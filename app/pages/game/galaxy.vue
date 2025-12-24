@@ -1,10 +1,15 @@
 <script setup lang="ts">
+import { FleetMission } from '~/types/game'
+
 definePageMeta({
   layout: 'game',
 })
 
+const router = useRouter()
 const { player } = useAuth()
+const { currentPlanet } = useGame()
 const { currentGalaxy, currentSystem, systemView, isLoading, fetchSystem, changeGalaxy, changeSystem, jumpTo, formatCoords } = useGalaxy()
+const { sendFleet } = useFleet()
 
 // Fetch initial data
 onMounted(() => {
@@ -46,6 +51,80 @@ const goToSystem = () => {
 // Check if planet is owned by current player
 const isOwnPlanet = (slot: any) => {
   return slot.owner?._id === player.value?._id || slot.owner?.username === player.value?.username
+}
+
+// Action error state
+const actionError = ref<string | null>(null)
+const actionSuccess = ref<string | null>(null)
+
+// Handle spy mission
+const handleSpy = async (slot: any) => {
+  const ships = currentPlanet.value?.planet?.ships
+  const spyProbes = ships?.TAU_DO_THAM || 0
+  
+  if (spyProbes === 0) {
+    actionError.value = 'Bạn không có Tàu Do Thám nào!'
+    setTimeout(() => actionError.value = null, 3000)
+    return
+  }
+
+  const result = await sendFleet({
+    originPlanetId: currentPlanet.value?.planet?.id,
+    destination: { galaxy: currentGalaxy.value, system: currentSystem.value, position: slot.position },
+    ships: [{ type: 'TAU_DO_THAM', count: Math.min(spyProbes, 5) }],
+    mission: FleetMission.DO_THAM,
+  }) as { success: boolean; error?: string }
+
+  if (result.success) {
+    actionSuccess.value = `Đã gửi hạm đội do thám đến ${slot.planet?.name || 'mục tiêu'}!`
+    setTimeout(() => actionSuccess.value = null, 3000)
+  } else {
+    actionError.value = result.error || 'Gửi hạm đội thất bại'
+    setTimeout(() => actionError.value = null, 3000)
+  }
+}
+
+// Navigate to fleet page with pre-filled destination
+const handleAttack = (slot: any) => {
+  // Store destination in session storage for fleet page
+  sessionStorage.setItem('fleetDestination', JSON.stringify({
+    galaxy: currentGalaxy.value,
+    system: currentSystem.value,
+    position: slot.position,
+    mission: FleetMission.TAN_CONG,
+    targetName: slot.planet?.name
+  }))
+  router.push('/game/fleet')
+}
+
+const handleTransport = (slot: any) => {
+  sessionStorage.setItem('fleetDestination', JSON.stringify({
+    galaxy: currentGalaxy.value,
+    system: currentSystem.value,
+    position: slot.position,
+    mission: FleetMission.VAN_CHUYEN,
+    targetName: slot.planet?.name
+  }))
+  router.push('/game/fleet')
+}
+
+const handleColonize = (slot: any) => {
+  const ships = currentPlanet.value?.planet?.ships
+  const colonyShips = ships?.TAU_THUOC_DIA || 0
+  
+  if (colonyShips === 0) {
+    actionError.value = 'Bạn không có Tàu Thuộc Địa nào!'
+    setTimeout(() => actionError.value = null, 3000)
+    return
+  }
+
+  sessionStorage.setItem('fleetDestination', JSON.stringify({
+    galaxy: currentGalaxy.value,
+    system: currentSystem.value,
+    position: slot.position,
+    mission: FleetMission.THUOC_DIA
+  }))
+  router.push('/game/fleet')
 }
 </script>
 
@@ -187,15 +266,15 @@ const isOwnPlanet = (slot: any) => {
           <div class="col-span-3">
             <template v-if="slot.planet && !isOwnPlanet(slot)">
               <div class="flex items-center justify-center gap-2">
-                <button class="neo-btn-ghost text-xs px-3 py-1 flex items-center gap-1">
+                <button class="neo-btn-ghost text-xs px-3 py-1 flex items-center gap-1" @click="handleSpy(slot)">
                   <IconsTauDoTham class="w-4 h-4" />
                   Do thám
                 </button>
-                <button class="neo-btn-ghost text-xs px-3 py-1 text-alert-400 hover:bg-alert-400/10 flex items-center gap-1">
+                <button class="neo-btn-ghost text-xs px-3 py-1 text-alert-400 hover:bg-alert-400/10 flex items-center gap-1" @click="handleAttack(slot)">
                   <IconsTanCong class="w-4 h-4" />
                   Tấn công
                 </button>
-                <button class="neo-btn-ghost text-xs px-3 py-1 flex items-center gap-1">
+                <button class="neo-btn-ghost text-xs px-3 py-1 flex items-center gap-1" @click="handleTransport(slot)">
                   <IconsHamDoi class="w-4 h-4" />
                   Vận chuyển
                 </button>
@@ -203,7 +282,7 @@ const isOwnPlanet = (slot: any) => {
             </template>
             <template v-else-if="!slot.planet">
               <div class="flex items-center justify-center">
-                <button class="neo-btn-ghost text-xs px-3 py-1 text-success-400 hover:bg-success-400/10 flex items-center gap-1">
+                <button class="neo-btn-ghost text-xs px-3 py-1 text-success-400 hover:bg-success-400/10 flex items-center gap-1" @click="handleColonize(slot)">
                   <IconsHanhTinh class="w-4 h-4" />
                   Thuộc địa hóa
                 </button>
@@ -211,6 +290,21 @@ const isOwnPlanet = (slot: any) => {
             </template>
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- Success/Error Messages -->
+    <div v-if="actionSuccess" class="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 neo-card p-4 border-l-2 border-success-400 bg-space-900/95">
+      <div class="flex items-center gap-3">
+        <IconsHoanThanh class="w-5 h-5 text-success-400" />
+        <p class="text-success-400">{{ actionSuccess }}</p>
+      </div>
+    </div>
+    
+    <div v-if="actionError" class="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 neo-card p-4 border-l-2 border-alert-400 bg-space-900/95">
+      <div class="flex items-center gap-3">
+        <IconsCanhBao class="w-5 h-5 text-alert-400" />
+        <p class="text-alert-400">{{ actionError }}</p>
       </div>
     </div>
 

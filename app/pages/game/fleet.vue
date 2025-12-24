@@ -11,9 +11,29 @@ definePageMeta({
 const { currentPlanet, isLoading } = useGame()
 const { fleets, isLoading: fleetsLoading, fetchFleets, sendFleet, recallFleet, getFleetCountdownVi, stopTicker } = useFleet()
 
+// Pre-filled destination from Galaxy page
+const prefilledDestination = ref<any>(null)
+
 // Fetch fleets on mount
 onMounted(() => {
   fetchFleets()
+  
+  // Check for pre-filled destination from Galaxy page
+  const stored = sessionStorage.getItem('fleetDestination')
+  if (stored) {
+    try {
+      prefilledDestination.value = JSON.parse(stored)
+      dispatch.destination = {
+        galaxy: prefilledDestination.value.galaxy,
+        system: prefilledDestination.value.system,
+        position: prefilledDestination.value.position,
+      }
+      dispatch.mission = prefilledDestination.value.mission || FleetMission.TAN_CONG
+      sessionStorage.removeItem('fleetDestination')
+    } catch (e) {
+      console.error('Failed to parse fleet destination:', e)
+    }
+  }
 })
 
 // Cleanup ticker on unmount
