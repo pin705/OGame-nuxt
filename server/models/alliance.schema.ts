@@ -1,10 +1,11 @@
 import { defineMongooseModel } from '#nuxt/mongoose'
+import { Schema } from 'mongoose'
 
 export const AllianceSchema = defineMongooseModel({
   name: 'Alliance',
   schema: {
     name: {
-      type: 'string',
+      type: String,
       required: true,
       unique: true,
       trim: true,
@@ -12,7 +13,7 @@ export const AllianceSchema = defineMongooseModel({
       maxlength: 30,
     },
     tag: {
-      type: 'string',
+      type: String,
       required: true,
       unique: true,
       trim: true,
@@ -21,35 +22,35 @@ export const AllianceSchema = defineMongooseModel({
       uppercase: true,
     },
     owner: {
-      type: 'ObjectId',
+      type: Schema.Types.ObjectId,
       ref: 'Player',
       required: true,
     },
     members: [{
-      type: 'ObjectId',
+      type: Schema.Types.ObjectId,
       ref: 'Player',
     }],
     description: {
-      type: 'string',
+      type: String,
       default: '',
       maxlength: 1000,
     },
     applications: [{
       player: {
-        type: 'ObjectId',
+        type: Schema.Types.ObjectId,
         ref: 'Player',
       },
       message: {
-        type: 'string',
+        type: String,
         maxlength: 500,
       },
       createdAt: {
-        type: 'Date',
+        type: Date,
         default: Date.now,
       },
     }],
     createdAt: {
-      type: 'Date',
+      type: Date,
       default: Date.now,
     },
   },
