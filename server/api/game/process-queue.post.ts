@@ -2,6 +2,7 @@
 // This can be called by a cron job or periodically by clients
 
 import { notifyBuildingComplete, notifyResearchComplete, notifyShipComplete, notifyFleetUpdate } from '~~/server/routes/_ws'
+import { calculatePlayerPoints } from '~/server/utils/points'
 
 export default defineEventHandler(async (event) => {
   const now = new Date()
@@ -121,6 +122,9 @@ async function completeBuildingUpgrade(build: any) {
     planetId: planet._id,
     planetName: planet.name,
   })
+
+  // Update points
+  await calculatePlayerPoints(planet.owner.toString())
 }
 
 async function completeResearch(build: any) {
@@ -151,6 +155,9 @@ async function completeResearch(build: any) {
     researchType: build.itemType,
     level: build.targetLevel,
   })
+
+  // Update points
+  await calculatePlayerPoints(player._id.toString())
 }
 
 async function completeShipBuild(build: any) {
@@ -183,6 +190,9 @@ async function completeShipBuild(build: any) {
     planetId: planet._id,
     planetName: planet.name,
   })
+
+  // Update points
+  await calculatePlayerPoints(planet.owner.toString())
 }
 
 async function completeDefenseBuild(build: any) {
@@ -207,6 +217,9 @@ async function completeDefenseBuild(build: any) {
   await planet.save()
   build.status = 'COMPLETED'
   await build.save()
+
+  // Update points
+  await calculatePlayerPoints(planet.owner.toString())
 }
 
 async function processFleetReturn(fleet: any) {

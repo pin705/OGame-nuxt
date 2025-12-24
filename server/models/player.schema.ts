@@ -32,6 +32,11 @@ export const PlayerSchema = defineMongooseModel({
       default: 0,
       min: 0,
     },
+    points: {
+      type: 'number',
+      default: 0,
+      min: 0,
+    },
     rank: {
       type: 'string',
       enum: [

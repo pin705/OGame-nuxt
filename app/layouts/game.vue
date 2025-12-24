@@ -23,6 +23,7 @@ const navigation = [
   { name: 'Phòng thủ', shortName: 'Phòng thủ', href: '/game/defenses', iconType: 'defense' },
   { name: 'Hạm đội', shortName: 'Hạm đội', href: '/game/fleet', iconType: 'fleet' },
   { name: 'Thiên hà', shortName: 'Thiên hà', href: '/game/galaxy', iconType: 'galaxy' },
+  { name: 'Bảng xếp hạng', shortName: 'Xếp hạng', href: '/game/highscore', iconType: 'highscore' },
   { name: 'Báo cáo', shortName: 'Báo cáo', href: '/game/reports', iconType: 'menu' },
 ]
 
@@ -216,6 +217,7 @@ const handleLogout = async () => {
                 <IconsHamDoi v-else-if="item.iconType === 'fleet'" class="w-5 h-5" />
                 <IconsPhongThu v-else-if="item.iconType === 'defense'" class="w-5 h-5" />
                 <IconsThienHa v-else-if="item.iconType === 'galaxy'" class="w-5 h-5" />
+                <IconsNguoiChoi v-else-if="item.iconType === 'highscore'" class="w-5 h-5" />
               </span>
               <span>{{ item.name }}</span>
               <!-- Active indicator glow -->
