@@ -1,4 +1,4 @@
-import { PlayerSchema } from '~/server/models/player.schema'
+import { PlayerSchema } from '~~/server/models/player.schema'
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)

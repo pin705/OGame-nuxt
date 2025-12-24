@@ -1,6 +1,8 @@
 import { requireAuth } from '~~/server/utils/auth'
 import { simulateBattle } from '~~/server/utils/combat'
 import { EspionageReportSchema } from '~~/server/models/espionage-report.schema'
+import { BattleReportSchema } from '~~/server/models/battle-report.schema'
+import { MessageSchema } from '~~/server/models/message.schema'
 
 // Process fleet arrival and execute mission
 export default defineEventHandler(async (event) => {
@@ -148,6 +150,9 @@ async function processAttack(fleet: any, targetPlanet: any, attackerId: string) 
     }
   )
 
+  // Store initial fleet for report
+  const initialAttackerFleet = [...fleet.ships]
+
   // Update defender's planet
   if (battleResult.attackerWins) {
     // Remove loot from defender
@@ -185,7 +190,7 @@ async function processAttack(fleet: any, targetPlanet: any, attackerId: string) 
   await targetPlanet.save()
 
   // Create battle report
-  await BattleReportSchema.create({
+  const report = await BattleReportSchema.create({
     attacker: attackerId,
     defender: targetPlanet.owner,
     attackerPlanet: fleet.origin,
@@ -196,16 +201,53 @@ async function processAttack(fleet: any, targetPlanet: any, attackerId: string) 
       draw: battleResult.draw,
       rounds: battleResult.rounds,
     },
-    attackerFleet: fleet.ships.map((s: any, i: number) => ({
-      type: s.type,
-      initial: s.count,
-      lost: battleResult.attackerLosses[i]?.lost || 0,
-      remaining: battleResult.attackerLosses[i]?.remaining || 0,
+    attackerFleet: battleResult.attackerLosses.map(loss => {
+      const initial = initialAttackerFleet.find((s: any) => s.type === loss.type)?.count || 0
+      return {
+        type: loss.type,
+        initial,
+        lost: loss.lost,
+        remaining: loss.remaining,
+      }
+    }),
+    defenderFleet: battleResult.defenderLosses.filter(l => !l.type.startsWith('PHAO_') && !l.type.startsWith('TEN_') && !l.type.startsWith('KHIEN_')).map(loss => ({
+      type: loss.type,
+      initial: loss.lost + loss.remaining,
+      lost: loss.lost,
+      remaining: loss.remaining,
     })),
-    defenderFleet: battleResult.defenderLosses,
+    defenderDefenses: battleResult.defenderLosses.filter(l => l.type.startsWith('PHAO_') || l.type.startsWith('TEN_') || l.type.startsWith('KHIEN_')).map(loss => ({
+      type: loss.type,
+      initial: loss.lost + loss.remaining,
+      lost: loss.lost,
+      remaining: loss.remaining,
+    })),
     loot: battleResult.loot,
     debrisField: battleResult.debrisField,
     battleTime: new Date(),
+  })
+
+  // Send messages
+  const subject = `Báo cáo chiến đấu [${targetPlanet.coordinates.galaxy}:${targetPlanet.coordinates.system}:${targetPlanet.coordinates.position}]`
+  const resultText = battleResult.attackerWins ? 'Người tấn công thắng' : (battleResult.defenderWins ? 'Người phòng thủ thắng' : 'Hòa')
+  const content = `Trận chiến tại hành tinh ${targetPlanet.name}. Kết quả: ${resultText}. <a href="/game/reports/${report._id}" class="text-primary-400 hover:underline">Xem chi tiết</a>`
+
+  // To Attacker
+  await MessageSchema.create({
+    recipient: attackerId,
+    type: 'COMBAT',
+    subject: subject + (battleResult.attackerWins ? ' (Thắng)' : ' (Thua)'),
+    content,
+    relatedId: report._id,
+  })
+
+  // To Defender
+  await MessageSchema.create({
+    recipient: targetPlanet.owner,
+    type: 'COMBAT',
+    subject: subject + (battleResult.defenderWins ? ' (Thắng)' : ' (Thua)'),
+    content,
+    relatedId: report._id,
   })
 
   // Set fleet to return

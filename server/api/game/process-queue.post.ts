@@ -2,7 +2,7 @@
 // This can be called by a cron job or periodically by clients
 
 import { notifyBuildingComplete, notifyResearchComplete, notifyShipComplete, notifyFleetUpdate } from '~~/server/routes/_ws'
-import { calculatePlayerPoints } from '~/server/utils/points'
+import { calculatePlayerPoints } from '~~/server/utils/points'
 
 export default defineEventHandler(async (event) => {
   const now = new Date()

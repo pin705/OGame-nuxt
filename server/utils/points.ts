@@ -1,6 +1,6 @@
 import { BUILDINGS, RESEARCHES, SHIPS, DEFENSES } from '~/config/gameConfig'
-import { PlayerSchema } from '~/server/models/player.schema'
-import { PlanetSchema } from '~/server/models/planet.schema'
+import { PlayerSchema } from '~~/server/models/player.schema'
+import { PlanetSchema } from '~~/server/models/planet.schema'
 
 // Calculate total cost of a building/research up to a certain level
 function calculateTotalCost(baseCost: { tinhThach: number, nangLuongVuTru: number, honThach: number }, costFactor: number, level: number) {

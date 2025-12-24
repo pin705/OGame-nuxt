@@ -24,6 +24,8 @@ const navigation = [
   { name: 'Hạm đội', shortName: 'Hạm đội', href: '/game/fleet', iconType: 'fleet' },
   { name: 'Thiên hà', shortName: 'Thiên hà', href: '/game/galaxy', iconType: 'galaxy' },
   { name: 'Bảng xếp hạng', shortName: 'Xếp hạng', href: '/game/highscore', iconType: 'highscore' },
+  { name: 'Liên minh', shortName: 'Liên minh', href: '/game/alliance', iconType: 'alliance' },
+  { name: 'Tin nhắn', shortName: 'Tin nhắn', href: '/game/messages', iconType: 'message' },
   { name: 'Báo cáo', shortName: 'Báo cáo', href: '/game/reports', iconType: 'menu' },
 ]
 
@@ -38,8 +40,19 @@ const mobileNav = [
 
 const isMoreMenuOpen = ref(false)
 const isInitialized = ref(false)
+const unreadMessages = ref(0)
 
 const isActiveRoute = (href: string) => route.path === href
+
+// Fetch unread messages
+const fetchUnreadMessages = async () => {
+  try {
+    const { count } = await $fetch('/api/game/messages/count')
+    unreadMessages.value = count
+  } catch (e) {
+    console.error('Failed to fetch unread messages')
+  }
+}
 
 // Handle "More" menu toggle
 const toggleMoreMenu = () => {
@@ -54,6 +67,7 @@ onMounted(async () => {
     return
   }
   await game.initGame()
+  await fetchUnreadMessages()
   isInitialized.value = true
   
   // Start countdown ticker
@@ -218,8 +232,14 @@ const handleLogout = async () => {
                 <IconsPhongThu v-else-if="item.iconType === 'defense'" class="w-5 h-5" />
                 <IconsThienHa v-else-if="item.iconType === 'galaxy'" class="w-5 h-5" />
                 <IconsNguoiChoi v-else-if="item.iconType === 'highscore'" class="w-5 h-5" />
+                <IconsNguoiChoi v-else-if="item.iconType === 'alliance'" class="w-5 h-5" />
+                <IconsThongTin v-else-if="item.iconType === 'message'" class="w-5 h-5" />
               </span>
               <span>{{ item.name }}</span>
+              <!-- Unread badge -->
+              <span v-if="item.iconType === 'message' && unreadMessages > 0" class="ml-auto bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                {{ unreadMessages }}
+              </span>
               <!-- Active indicator glow -->
               <span v-if="isActiveRoute(item.href)" class="ml-auto w-1.5 h-1.5 rounded-full bg-[#00D1FF] shadow-[0_0_8px_#00D1FF]" />
             </NuxtLink>

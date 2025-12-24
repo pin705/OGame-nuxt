@@ -1,4 +1,4 @@
-import { updateAllPlayersPoints } from '~/server/utils/points'
+import { updateAllPlayersPoints } from '~~/server/utils/points'
 
 export default defineEventHandler(async (event) => {
   try {
