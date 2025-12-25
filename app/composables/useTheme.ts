@@ -45,12 +45,19 @@ export const useTheme = () => {
   const applyTheme = (theme: Theme) => {
     if (!import.meta.client) return
     
+    // Use class-based approach for CSS variables
+    if (theme === 'light') {
+      document.documentElement.classList.add('light')
+    } else {
+      document.documentElement.classList.remove('light')
+    }
+    
     document.documentElement.setAttribute('data-theme', theme)
     
     // Update meta theme-color for mobile browsers
     const metaThemeColor = document.querySelector('meta[name="theme-color"]')
     if (metaThemeColor) {
-      metaThemeColor.setAttribute('content', theme === 'dark' ? '#050608' : '#f8fafc')
+      metaThemeColor.setAttribute('content', theme === 'dark' ? '#030712' : '#f8fafc')
     }
   }
   

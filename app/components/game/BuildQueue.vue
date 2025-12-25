@@ -78,35 +78,35 @@ const toggle = () => {
       <!-- Collapsed Badge - Show when has queue and collapsed -->
       <button
         v-if="hasActiveQueue && !isExpanded"
-        class="relative flex items-center gap-2 px-4 py-3 bg-space-900/95 backdrop-blur-sm border border-primary-500/30 rounded-lg shadow-lg shadow-primary-500/10 hover:border-primary-500/50 transition-all"
+        class="relative flex items-center gap-2 px-4 py-3 bg-[var(--neo-bg-card)] backdrop-blur-sm border border-[var(--neo-border-active)] rounded-lg shadow-lg hover:border-[var(--neo-cyan)] transition-all neo-glow-cyan"
         @click="toggle"
       >
         <div class="flex items-center gap-2">
-          <div class="w-2 h-2 rounded-full bg-primary-500 animate-pulse" />
-          <span class="text-sm font-medium text-neutral-200">Hàng đợi</span>
+          <div class="w-2 h-2 rounded-full bg-[var(--neo-cyan)] animate-pulse" />
+          <span class="text-sm font-medium text-[var(--neo-text-primary)]">Hàng đợi</span>
         </div>
-        <span class="bg-primary-500/20 text-primary-400 text-xs font-bold px-2 py-0.5 rounded-full">
+        <span class="bg-[var(--neo-cyan-glow)] text-[var(--neo-cyan)] text-xs font-bold px-2 py-0.5 rounded-full">
           {{ totalQueueItems }}
         </span>
-        <IconsMuiTen class="w-4 h-4 text-neutral-400 rotate-180" />
+        <IconsMuiTen class="w-4 h-4 text-[var(--neo-text-muted)] rotate-180" />
       </button>
 
       <!-- Expanded Panel -->
       <div
         v-if="isExpanded"
-        class="w-80 bg-space-900/95 backdrop-blur-sm border border-neutral-700/50 rounded-lg shadow-xl overflow-hidden"
+        class="w-80 bg-[var(--neo-bg-card)] backdrop-blur-sm border border-[var(--neo-border)] rounded-lg shadow-xl overflow-hidden"
       >
         <!-- Header -->
-        <div class="flex items-center justify-between px-4 py-3 border-b border-neutral-700/50 bg-space-800/50">
+        <div class="flex items-center justify-between px-4 py-3 border-b border-[var(--neo-border)] bg-[var(--neo-bg-dark)]">
           <div class="flex items-center gap-2">
-            <IconsThoiGian class="w-5 h-5 text-primary-500" />
-            <h3 class="font-semibold text-neutral-200">Hàng Đợi Xây Dựng</h3>
+            <IconsThoiGian class="w-5 h-5 text-[var(--neo-cyan)]" />
+            <h3 class="font-semibold text-[var(--neo-text-primary)]">Hàng Đợi Xây Dựng</h3>
           </div>
           <button
-            class="p-1 hover:bg-neutral-700/50 rounded transition-colors"
+            class="p-1 hover:bg-[var(--neo-bg-elevated)] rounded transition-colors"
             @click="toggle"
           >
-            <IconsDong class="w-4 h-4 text-neutral-400" />
+            <IconsDong class="w-4 h-4 text-[var(--neo-text-muted)]" />
           </button>
         </div>
 
@@ -114,15 +114,15 @@ const toggle = () => {
         <div class="max-h-96 overflow-y-auto">
           <!-- Empty State -->
           <div v-if="!hasActiveQueue" class="p-6 text-center">
-            <IconsThoiGian class="w-10 h-10 text-neutral-600 mx-auto mb-2" />
-            <p class="text-sm text-neutral-500">Không có công trình nào đang xây dựng</p>
+            <IconsThoiGian class="w-10 h-10 text-[var(--neo-text-dim)] mx-auto mb-2" />
+            <p class="text-sm text-[var(--neo-text-muted)]">Không có công trình nào đang xây dựng</p>
           </div>
 
           <!-- Buildings Queue -->
           <div v-if="buildingQueue.length > 0" class="p-3 space-y-2">
             <div class="flex items-center gap-2 mb-2">
-              <IconsMoKhoang class="w-4 h-4 text-cyan-400" />
-              <span class="text-xs font-medium text-neutral-400 uppercase tracking-wider">Công trình</span>
+              <IconsMoKhoang class="w-4 h-4 text-[var(--neo-crystal)]" />
+              <span class="text-xs font-medium text-[var(--neo-text-muted)] uppercase tracking-wider">Công trình</span>
             </div>
 
             <div
@@ -130,38 +130,38 @@ const toggle = () => {
               :key="item.id"
               class="relative p-3 rounded-lg border transition-all"
               :class="item.status === 'IN_PROGRESS' 
-                ? 'bg-primary-500/10 border-primary-500/30' 
-                : 'bg-neutral-800/50 border-neutral-700/30'"
+                ? 'bg-[var(--neo-cyan-glow)] border-[var(--neo-border-active)]' 
+                : 'bg-[var(--neo-bg-dark)] border-[var(--neo-border)]'"
             >
               <div class="flex items-center justify-between gap-2">
                 <div class="flex-1 min-w-0">
                   <div class="flex items-center gap-2">
                     <span 
                       class="text-xs font-bold px-1.5 py-0.5 rounded"
-                      :class="item.status === 'IN_PROGRESS' ? 'bg-primary-500/20 text-primary-400' : 'bg-neutral-700 text-neutral-400'"
+                      :class="item.status === 'IN_PROGRESS' ? 'bg-[var(--neo-cyan-glow)] text-[var(--neo-cyan)]' : 'bg-[var(--neo-bg-elevated)] text-[var(--neo-text-muted)]'"
                     >
                       {{ Number(index) + 1 }}
                     </span>
-                    <span class="text-sm font-medium text-neutral-200 truncate">
+                    <span class="text-sm font-medium text-[var(--neo-text-primary)] truncate">
                       {{ getItemName(item.type, 'building') }}
                     </span>
                   </div>
                   <div class="flex items-center gap-2 mt-1">
-                    <span class="text-xs text-neutral-500">Cấp {{ item.level }}</span>
+                    <span class="text-xs text-[var(--neo-text-muted)]">Cấp {{ item.level }}</span>
                     <template v-if="item.status === 'IN_PROGRESS'">
-                      <span class="text-xs text-primary-400 font-mono">
+                      <span class="text-xs text-[var(--neo-cyan)] font-mono">
                         {{ formatTime(countdown.buildingRemaining.value) }}
                       </span>
                     </template>
                     <template v-else>
-                      <span class="text-xs text-neutral-500">Đang chờ</span>
+                      <span class="text-xs text-[var(--neo-text-muted)]">Đang chờ</span>
                     </template>
                   </div>
                 </div>
 
                 <!-- Cancel Button -->
                 <button
-                  class="p-1.5 rounded hover:bg-alert-500/20 text-neutral-500 hover:text-alert-400 transition-colors"
+                  class="p-1.5 rounded hover:bg-[var(--neo-red-glow)] text-[var(--neo-text-muted)] hover:text-[var(--neo-danger)] transition-colors"
                   :disabled="isCancelling === item.id"
                   title="Hủy xây dựng"
                   @click.stop="cancelBuilding(item.id)"
@@ -177,10 +177,10 @@ const toggle = () => {
               <!-- Progress bar for active item -->
               <div
                 v-if="item.status === 'IN_PROGRESS' && item.remainingSeconds != null"
-                class="mt-2 h-1 bg-neutral-700 rounded-full overflow-hidden"
+                class="mt-2 h-1 bg-[var(--neo-bg-dark)] rounded-full overflow-hidden"
               >
                 <div
-                  class="h-full bg-gradient-to-r from-primary-500 to-cyan-400 transition-all duration-1000"
+                  class="h-full bg-gradient-to-r from-[var(--neo-cyan-dark)] to-[var(--neo-cyan)] transition-all duration-1000"
                   :style="{ width: `${Math.max(0, 100 - (countdown.buildingRemaining.value / (item.durationSeconds || 1)) * 100)}%` }"
                 />
               </div>
@@ -188,21 +188,21 @@ const toggle = () => {
           </div>
 
           <!-- Research Queue -->
-          <div v-if="research" class="p-3 border-t border-neutral-700/30">
+          <div v-if="research" class="p-3 border-t border-[var(--neo-border)]">
             <div class="flex items-center gap-2 mb-2">
-              <IconsNghienCuu class="w-4 h-4 text-purple-400" />
-              <span class="text-xs font-medium text-neutral-400 uppercase tracking-wider">Nghiên cứu</span>
+              <IconsNghienCuu class="w-4 h-4 text-[var(--neo-purple)]" />
+              <span class="text-xs font-medium text-[var(--neo-text-muted)] uppercase tracking-wider">Nghiên cứu</span>
             </div>
 
-            <div class="p-3 rounded-lg bg-purple-500/10 border border-purple-500/30">
+            <div class="p-3 rounded-lg bg-[var(--neo-purple-glow)] border border-[var(--neo-purple)]/30">
               <div class="flex items-center justify-between">
                 <div>
-                  <span class="text-sm font-medium text-neutral-200">
+                  <span class="text-sm font-medium text-[var(--neo-text-primary)]">
                     {{ getItemName(research.type, 'research') }}
                   </span>
                   <div class="flex items-center gap-2 mt-1">
-                    <span class="text-xs text-neutral-500">Cấp {{ research.level }}</span>
-                    <span class="text-xs text-purple-400 font-mono">
+                    <span class="text-xs text-[var(--neo-text-muted)]">Cấp {{ research.level }}</span>
+                    <span class="text-xs text-[var(--neo-purple)] font-mono">
                       {{ formatTime(countdown.researchRemaining.value) }}
                     </span>
                   </div>
@@ -212,25 +212,25 @@ const toggle = () => {
           </div>
 
           <!-- Ships Queue -->
-          <div v-if="ships.length > 0" class="p-3 border-t border-neutral-700/30">
+          <div v-if="ships.length > 0" class="p-3 border-t border-[var(--neo-border)]">
             <div class="flex items-center gap-2 mb-2">
-              <IconsChienHam class="w-4 h-4 text-orange-400" />
-              <span class="text-xs font-medium text-neutral-400 uppercase tracking-wider">Tàu chiến</span>
+              <IconsChienHam class="w-4 h-4 text-[var(--neo-orange)]" />
+              <span class="text-xs font-medium text-[var(--neo-text-muted)] uppercase tracking-wider">Tàu chiến</span>
             </div>
 
             <div
               v-for="ship in ships"
               :key="ship.id"
-              class="p-3 rounded-lg bg-orange-500/10 border border-orange-500/30 mb-2 last:mb-0"
+              class="p-3 rounded-lg bg-[var(--neo-orange-glow)] border border-[var(--neo-orange)]/30 mb-2 last:mb-0"
             >
               <div class="flex items-center justify-between">
                 <div>
-                  <span class="text-sm font-medium text-neutral-200">
+                  <span class="text-sm font-medium text-[var(--neo-text-primary)]">
                     {{ getItemName(ship.type, 'ship') }}
                   </span>
                   <div class="flex items-center gap-2 mt-1">
-                    <span class="text-xs text-neutral-500">x{{ ship.count }}</span>
-                    <span class="text-xs text-orange-400 font-mono">
+                    <span class="text-xs text-[var(--neo-text-muted)]">x{{ ship.count }}</span>
+                    <span class="text-xs text-[var(--neo-orange)] font-mono">
                       {{ formatTime(ship.remainingSeconds) }}
                     </span>
                   </div>
@@ -241,10 +241,10 @@ const toggle = () => {
         </div>
 
         <!-- Footer with queue capacity -->
-        <div class="px-4 py-2 border-t border-neutral-700/30 bg-space-800/30">
+        <div class="px-4 py-2 border-t border-[var(--neo-border)] bg-[var(--neo-bg-dark)]">
           <div class="flex items-center justify-between text-xs">
-            <span class="text-neutral-500">Công trình trong hàng đợi</span>
-            <span class="font-mono" :class="buildingQueue.length >= 6 ? 'text-warning-400' : 'text-neutral-400'">
+            <span class="text-[var(--neo-text-muted)]">Công trình trong hàng đợi</span>
+            <span class="font-mono" :class="buildingQueue.length >= 6 ? 'text-[var(--neo-warning)]' : 'text-[var(--neo-text-secondary)]'">
               {{ buildingQueue.filter((b: any) => b.status === 'IN_PROGRESS').length }}/3 đang xây · {{ buildingQueue.filter((b: any) => b.status === 'PENDING').length }}/3 chờ
             </span>
           </div>

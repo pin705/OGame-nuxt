@@ -253,11 +253,11 @@ const compactFormat = (num: number) => {
 
 .resource-label {
   font-family: 'Orbitron', sans-serif;
-  font-size: 8px;
+  font-size: 10px;
   font-weight: 500;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #6E7681;
+  @apply text-neutral-500;
 }
 
 .resource-value-wrapper {

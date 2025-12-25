@@ -112,18 +112,18 @@ const formatGain = (value: number) => {
 }
 
 .resource-gain-popup.metal {
-  color: var(--res-metal);
-  text-shadow: 0 0 8px rgba(148, 163, 184, 0.5);
+  color: var(--neo-metal);
+  text-shadow: 0 0 8px var(--neo-metal-glow);
 }
 
 .resource-gain-popup.crystal {
-  color: var(--res-crystal);
-  text-shadow: 0 0 8px rgba(0, 180, 216, 0.5);
+  color: var(--neo-crystal);
+  text-shadow: 0 0 8px var(--neo-crystal-glow);
 }
 
 .resource-gain-popup.deuterium {
-  color: var(--res-deuterium);
-  text-shadow: 0 0 8px rgba(45, 212, 168, 0.5);
+  color: var(--neo-soul);
+  text-shadow: 0 0 8px var(--neo-soul-glow);
 }
 
 @keyframes resource-float-up {

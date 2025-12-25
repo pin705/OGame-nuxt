@@ -87,7 +87,7 @@ export default defineEventHandler(async (event) => {
       planet: planetId,
       queueType: 'BUILDING',
       status: { $in: ['PENDING', 'IN_PROGRESS'] },
-    }).sort({ queuePosition: 1 }) as QueueDoc[]
+    }).sort({ queuePosition: 1 }) as unknown as QueueDoc[]
 
     // Count in progress and pending separately
     const inProgressCount = existingQueues.filter(q => q.status === 'IN_PROGRESS').length

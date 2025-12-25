@@ -112,26 +112,29 @@ export async function awardExperience(playerId: string, xpAmount: number): Promi
   newRank?: string
 }> {
   // Dynamic import to avoid circular dependency
-  const player = await PlayerSchema.findById(playerId)
-  if (!player) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const playerDoc = await PlayerSchema.findById(playerId) as any
+  if (!playerDoc) {
     throw new Error('Player not found')
   }
   
-  const previousLevel = player.level
-  const previousRank = player.rank
-  const newTotalXp = (player.experience || 0) + xpAmount
-  const newLevel = getLevelFromXp(newTotalXp)
-  const newRank = getRankFromLevel(newLevel)
+  // Extract values with explicit number conversion
+  const previousLevel: number = Number(playerDoc.level) || 1
+  const previousRank: string = String(playerDoc.rank || '')
+  const currentXp: number = Number(playerDoc.experience) || 0
+  const newTotalXp: number = currentXp + xpAmount
+  const newLevel: number = getLevelFromXp(newTotalXp)
+  const newRank: string = getRankFromLevel(newLevel)
   
-  // Update player
-  player.experience = newTotalXp
-  player.level = newLevel
+  // Update player document
+  playerDoc.experience = newTotalXp
+  playerDoc.level = newLevel
   
   if (newRank !== previousRank) {
-    player.rank = newRank
+    playerDoc.rank = newRank
   }
   
-  await player.save()
+  await playerDoc.save()
   
   return {
     previousLevel,
