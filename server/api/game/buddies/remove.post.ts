@@ -1,5 +1,5 @@
-import { requireAuth } from '~/server/utils/auth'
-import { BuddySchema } from '~/server/models/buddy.schema'
+import { requireAuth } from '~~/server/utils/auth'
+import { BuddySchema } from '~~/server/models/buddy.schema'
 
 /**
  * Remove a buddy from friend list

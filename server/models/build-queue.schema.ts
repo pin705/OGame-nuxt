@@ -30,18 +30,34 @@ export const BuildQueueSchema = defineMongooseModel({
       type: 'number',
       min: 1,
     },
+    // Queue position for ordering (1, 2, 3)
+    queuePosition: {
+      type: 'number',
+      default: 1,
+      min: 1,
+      max: 3,
+    },
+    // Cost stored for refund if cancelled
+    cost: {
+      tinhThach: { type: 'number', default: 0 },
+      nangLuongVuTru: { type: 'number', default: 0 },
+      honThach: { type: 'number', default: 0 },
+    },
+    // Duration in seconds
+    durationSeconds: {
+      type: 'number',
+      default: 0,
+    },
     startTime: {
       type: 'Date',
-      required: true,
     },
     endTime: {
       type: 'Date',
-      required: true,
     },
     status: {
       type: 'string',
       enum: ['PENDING', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'],
-      default: 'IN_PROGRESS',
+      default: 'PENDING',
     },
   },
   options: {

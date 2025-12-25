@@ -246,11 +246,12 @@ const getRankName = (rank: string) => {
       </div>
 
       <!-- Game Guide for New Players -->
-      <GameGameGuide 
+      <GameGuide 
         v-if="gameTips.length > 0"
         :tips="gameTips"
         @dismiss="dismissTip"
       />
+      <div>
         <div class="text-right">
           <p class="text-xs text-neutral-500 uppercase tracking-wider">Sử dụng</p>
           <p class="font-mono"><span class="text-primary-500">{{ currentPlanet.planet.usedFields || 0 }}</span>/{{ currentPlanet.planet.maxFields || 163 }}</p>

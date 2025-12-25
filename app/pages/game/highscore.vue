@@ -1,7 +1,6 @@
 <script setup lang="ts">
 definePageMeta({
   layout: 'game',
-  middleware: 'auth',
 })
 
 // Categories for ranking

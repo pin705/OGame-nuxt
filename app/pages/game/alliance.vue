@@ -3,7 +3,6 @@ import { format } from 'date-fns'
 
 definePageMeta({
   layout: 'game',
-  middleware: 'auth',
 })
 
 // Tabs when in alliance
