@@ -114,6 +114,17 @@ export const BUILDINGS: Record<BuildingType, BuildingConfig> = {
     baseCost: { tinhThach: 400, nangLuongVuTru: 120, honThach: 200 },
     costFactor: 2,
   },
+  [BuildingType.NHA_MAY_NANITE]: {
+    type: BuildingType.NHA_MAY_NANITE,
+    name: 'Nhà Máy Nanite',
+    description: 'Công nghệ nano tiên tiến giúp tăng tốc độ xây dựng gấp bội.',
+    baseCost: { tinhThach: 1000000, nangLuongVuTru: 500000, honThach: 100000 },
+    costFactor: 2,
+    requirements: {
+      buildings: [{ type: BuildingType.NHA_MAY_ROBOT, level: 10 }],
+      researches: [{ type: ResearchType.CONG_NGHE_MAY_TINH, level: 10 }],
+    },
+  },
   [BuildingType.PHAO_DAI_PHONG_THU]: {
     type: BuildingType.PHAO_DAI_PHONG_THU,
     name: 'Pháo Đài Phòng Thủ',
@@ -122,6 +133,59 @@ export const BUILDINGS: Record<BuildingType, BuildingConfig> = {
     costFactor: 2,
     requirements: {
       buildings: [{ type: BuildingType.XUONG_DONG_TAU, level: 1 }],
+    },
+  },
+  [BuildingType.LO_NHIET_HACH]: {
+    type: BuildingType.LO_NHIET_HACH,
+    name: 'Lò Nhiệt Hạch',
+    description: 'Nguồn năng lượng mạnh mẽ từ phản ứng nhiệt hạch, tiêu thụ Hồn Thạch.',
+    baseCost: { tinhThach: 900, nangLuongVuTru: 360, honThach: 180 },
+    costFactor: 1.8,
+    energyProduction: 50,
+    requirements: {
+      buildings: [{ type: BuildingType.DEN_HON_THACH, level: 5 }],
+      researches: [{ type: ResearchType.CONG_NGHE_NANG_LUONG, level: 3 }],
+    },
+  },
+  [BuildingType.SILO_TEN_LUA]: {
+    type: BuildingType.SILO_TEN_LUA,
+    name: 'Silo Tên Lửa',
+    description: 'Lưu trữ tên lửa liên hành tinh và tên lửa đánh chặn.',
+    baseCost: { tinhThach: 20000, nangLuongVuTru: 20000, honThach: 1000 },
+    costFactor: 2,
+    requirements: {
+      buildings: [{ type: BuildingType.XUONG_DONG_TAU, level: 1 }],
+    },
+  },
+  [BuildingType.CANG_VU_TRU]: {
+    type: BuildingType.CANG_VU_TRU,
+    name: 'Cảng Vũ Trụ',
+    description: 'Cho phép sửa chữa tàu chiến bị hư hại.',
+    baseCost: { tinhThach: 200, nangLuongVuTru: 0, honThach: 50 },
+    costFactor: 5,
+    requirements: {
+      buildings: [{ type: BuildingType.XUONG_DONG_TAU, level: 4 }],
+    },
+  },
+  [BuildingType.MANG_CAM_BIEN]: {
+    type: BuildingType.MANG_CAM_BIEN,
+    name: 'Mạng Cảm Biến',
+    description: 'Cho phép dò tìm hoạt động của hạm đội trên các hành tinh khác.',
+    baseCost: { tinhThach: 20000, nangLuongVuTru: 40000, honThach: 20000 },
+    costFactor: 2,
+    requirements: {
+      buildings: [{ type: BuildingType.VIEN_NGHIEN_CUU, level: 5 }],
+    },
+  },
+  [BuildingType.CONG_NHAY]: {
+    type: BuildingType.CONG_NHAY,
+    name: 'Cổng Nhảy',
+    description: 'Cho phép dịch chuyển tức thời hạm đội giữa các mặt trăng.',
+    baseCost: { tinhThach: 2000000, nangLuongVuTru: 4000000, honThach: 2000000 },
+    costFactor: 2,
+    requirements: {
+      buildings: [{ type: BuildingType.XUONG_DONG_TAU, level: 8 }],
+      researches: [{ type: ResearchType.DONG_CO_SIEU_KHONG_GIAN, level: 7 }],
     },
   },
 }
@@ -242,6 +306,77 @@ export const RESEARCHES: Record<ResearchType, ResearchConfig> = {
     requirements: {
       buildings: [{ type: BuildingType.VIEN_NGHIEN_CUU, level: 7 }],
       researches: [{ type: ResearchType.CONG_NGHE_NANG_LUONG, level: 5 }],
+    },
+  },
+  [ResearchType.CONG_NGHE_TRONG_LUC]: {
+    type: ResearchType.CONG_NGHE_TRONG_LUC,
+    name: 'Công Nghệ Trọng Lực',
+    description: 'Nghiên cứu trọng lực cho phép chế tạo Tử Thần Tinh.',
+    baseCost: { tinhThach: 0, nangLuongVuTru: 0, honThach: 0 },
+    costFactor: 3,
+    requirements: {
+      buildings: [{ type: BuildingType.VIEN_NGHIEN_CUU, level: 12 }],
+    },
+  },
+  [ResearchType.CONG_NGHE_LASER]: {
+    type: ResearchType.CONG_NGHE_LASER,
+    name: 'Công Nghệ Laser',
+    description: 'Nền tảng cho các vũ khí laser tiên tiến.',
+    baseCost: { tinhThach: 200, nangLuongVuTru: 100, honThach: 0 },
+    costFactor: 2,
+    requirements: {
+      buildings: [{ type: BuildingType.VIEN_NGHIEN_CUU, level: 1 }],
+      researches: [{ type: ResearchType.CONG_NGHE_NANG_LUONG, level: 2 }],
+    },
+  },
+  [ResearchType.CONG_NGHE_ION]: {
+    type: ResearchType.CONG_NGHE_ION,
+    name: 'Công Nghệ Ion',
+    description: 'Công nghệ ion cho vũ khí và khiên phòng thủ.',
+    baseCost: { tinhThach: 1000, nangLuongVuTru: 300, honThach: 100 },
+    costFactor: 2,
+    requirements: {
+      buildings: [{ type: BuildingType.VIEN_NGHIEN_CUU, level: 4 }],
+      researches: [{ type: ResearchType.CONG_NGHE_LASER, level: 5 }],
+    },
+  },
+  [ResearchType.CONG_NGHE_PLASMA]: {
+    type: ResearchType.CONG_NGHE_PLASMA,
+    name: 'Công Nghệ Plasma',
+    description: 'Công nghệ plasma mạnh mẽ cho vũ khí hạng nặng.',
+    baseCost: { tinhThach: 2000, nangLuongVuTru: 4000, honThach: 1000 },
+    costFactor: 2,
+    requirements: {
+      buildings: [{ type: BuildingType.VIEN_NGHIEN_CUU, level: 4 }],
+      researches: [
+        { type: ResearchType.CONG_NGHE_ION, level: 5 },
+        { type: ResearchType.CONG_NGHE_NANG_LUONG, level: 8 },
+      ],
+    },
+  },
+  [ResearchType.LIEN_MANG_NGHIEN_CUU]: {
+    type: ResearchType.LIEN_MANG_NGHIEN_CUU,
+    name: 'Liên Mạng Nghiên Cứu',
+    description: 'Kết nối các viện nghiên cứu trên nhiều hành tinh.',
+    baseCost: { tinhThach: 240000, nangLuongVuTru: 400000, honThach: 160000 },
+    costFactor: 2,
+    requirements: {
+      buildings: [{ type: BuildingType.VIEN_NGHIEN_CUU, level: 10 }],
+      researches: [
+        { type: ResearchType.CONG_NGHE_MAY_TINH, level: 8 },
+        { type: ResearchType.CONG_NGHE_SIEU_KHONG_GIAN, level: 8 },
+      ],
+    },
+  },
+  [ResearchType.THUOC_DIA_HOC]: {
+    type: ResearchType.THUOC_DIA_HOC,
+    name: 'Thuộc Địa Học',
+    description: 'Cho phép khám phá và thuộc địa hóa nhiều hành tinh hơn.',
+    baseCost: { tinhThach: 4000, nangLuongVuTru: 8000, honThach: 4000 },
+    costFactor: 1.75,
+    requirements: {
+      buildings: [{ type: BuildingType.VIEN_NGHIEN_CUU, level: 3 }],
+      researches: [{ type: ResearchType.DONG_CO_XUNG, level: 3 }],
     },
   },
 }

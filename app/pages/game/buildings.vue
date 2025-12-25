@@ -18,9 +18,13 @@ const upgradingBuildingType = ref<BuildingType | null>(null)
 // Auto-refresh data
 const refreshInterval = ref<NodeJS.Timeout | null>(null)
 
+// Get building queue items
+const buildingQueueItems = computed(() => buildQueue.value?.buildingQueue || [])
+const currentBuildingInProgress = computed(() => buildQueue.value?.building)
+
 // Watch for countdown completion to auto-refresh
 watch(() => countdown.buildingRemaining.value, async (remaining) => {
-  if (remaining === 0 && buildQueue.value?.building) {
+  if (remaining === 0 && currentBuildingInProgress.value) {
     // Building completed, refresh immediately
     await Promise.all([
       processQueue(),
@@ -50,9 +54,12 @@ const buildings = computed(() => {
   const allTypes = Object.values(BuildingType)
   return allTypes.map(type => {
     const existing = planetBuildings.find((b: any) => b.type === type)
+    // Count pending upgrades for this building type
+    const pendingUpgrades = buildingQueueItems.value.filter((q: any) => q.type === type).length
     return {
       type,
       level: existing?.level || 0,
+      pendingLevel: pendingUpgrades > 0 ? (existing?.level || 0) + pendingUpgrades : null,
     }
   })
 })
@@ -73,6 +80,7 @@ const categories = [
       BuildingType.MAY_HAP_THU_NANG_LUONG,
       BuildingType.DEN_HON_THACH,
       BuildingType.LO_NANG_LUONG,
+      BuildingType.LO_NHIET_HACH,
     ],
   },
   {
@@ -92,7 +100,18 @@ const categories = [
       BuildingType.XUONG_DONG_TAU,
       BuildingType.VIEN_NGHIEN_CUU,
       BuildingType.NHA_MAY_ROBOT,
+      BuildingType.NHA_MAY_NANITE,
       BuildingType.PHAO_DAI_PHONG_THU,
+      BuildingType.SILO_TEN_LUA,
+      BuildingType.CANG_VU_TRU,
+    ],
+  },
+  {
+    name: 'Tiên Tiến',
+    icon: 'IconsNghienCuu',
+    types: [
+      BuildingType.MANG_CAM_BIEN,
+      BuildingType.CONG_NHAY,
     ],
   },
 ]
@@ -106,7 +125,10 @@ const filteredBuildings = computed(() => {
 })
 
 const canAffordBuilding = (type: BuildingType, currentLevel: number) => {
-  const cost = calculateBuildingCost(type, currentLevel + 1)
+  // Calculate cost for next level (considering pending upgrades)
+  const pendingUpgrades = buildingQueueItems.value.filter((q: any) => q.type === type).length
+  const effectiveLevel = currentLevel + pendingUpgrades + 1
+  const cost = calculateBuildingCost(type, effectiveLevel)
   return (
     resources.value.tinhThach >= cost.tinhThach &&
     resources.value.nangLuongVuTru >= cost.nangLuongVuTru &&
@@ -114,7 +136,8 @@ const canAffordBuilding = (type: BuildingType, currentLevel: number) => {
   )
 }
 
-const isAnyUpgrading = computed(() => !!buildQueue.value?.building)
+// Check if queue is full (max 3)
+const isQueueFull = computed(() => buildingQueueItems.value.length >= 3)
 
 const getBuildingRequirements = (type: BuildingType) => {
   const config = BUILDINGS[type]
@@ -130,13 +153,13 @@ const getBuildingRequirements = (type: BuildingType) => {
 const upgradeError = ref<string | null>(null)
 
 const handleUpgrade = async (type: BuildingType) => {
-  if (isAnyUpgrading.value || upgradingBuildingType.value) return
+  if (isQueueFull.value || upgradingBuildingType.value) return
   
   upgradeError.value = null
   upgradingBuildingType.value = type
   
   try {
-    const result = await upgradeBuilding(type) as { success: boolean; error?: string }
+    const result = await upgradeBuilding(type) as { success: boolean; error?: string; message?: string }
     
     if (!result.success) {
       upgradeError.value = result.error || 'Nâng cấp thất bại'
@@ -177,25 +200,28 @@ const handleUpgrade = async (type: BuildingType) => {
     </div>
 
     <!-- Warning if something is upgrading -->
-    <div v-if="isAnyUpgrading" class="neo-card p-3 md:p-4 border-l-2 border-warning-400">
+    <div v-if="currentBuildingInProgress" class="neo-card p-3 md:p-4 border-l-2 border-warning-400">
       <div class="flex items-center gap-3">
         <div class="w-10 h-10 neo-card flex items-center justify-center border-warning-400/30 flex-shrink-0">
           <IconsThoiGian class="w-5 h-5 text-warning-400 animate-pulse" />
         </div>
         <div class="flex-1 min-w-0">
-          <p class="font-display font-semibold text-sm md:text-base truncate">
-            Đang nâng cấp: {{ BUILDINGS[buildQueue.building.type as BuildingType]?.name }}
+          <p class="font-semibold text-sm md:text-base truncate">
+            Đang nâng cấp: {{ BUILDINGS[currentBuildingInProgress.type as BuildingType]?.name }}
           </p>
           <p class="text-sm text-neutral-500">
             Còn <span class="text-warning-400 font-mono text-base">{{ countdown.buildingFormattedVi.value }}</span>
           </p>
+        </div>
+        <div class="text-xs text-neutral-500">
+          {{ buildingQueueItems.length }}/3 trong hàng đợi
         </div>
       </div>
       <!-- Progress bar -->
       <div class="mt-3 h-1 bg-neutral-800 rounded-full overflow-hidden">
         <div 
           class="h-full bg-gradient-to-r from-warning-400 to-warning-500 transition-all duration-1000"
-          :style="{ width: `${100 - (countdown.buildingRemaining.value / (buildQueue.building.remainingSeconds || 1)) * 100}%` }"
+          :style="{ width: `${100 - (countdown.buildingRemaining.value / (currentBuildingInProgress.durationSeconds || currentBuildingInProgress.remainingSeconds || 1)) * 100}%` }"
         />
       </div>
     </div>
@@ -225,10 +251,20 @@ const handleUpgrade = async (type: BuildingType) => {
             <IconsMoKhoang class="w-6 h-6 text-primary-500" />
           </div>
           <div class="flex-1 min-w-0">
-            <h4 class="font-display font-semibold truncate">{{ BUILDINGS[building.type as BuildingType]?.name || building.type }}</h4>
-            <p class="text-sm text-neutral-500">Cấp <span class="text-primary-500 font-mono">{{ building.level }}</span></p>
+            <h4 class="font-semibold truncate">{{ BUILDINGS[building.type as BuildingType]?.name || building.type }}</h4>
+            <div class="flex items-center gap-2">
+              <p class="text-sm text-neutral-500">Cấp <span class="text-primary-500 font-mono">{{ building.level }}</span></p>
+              <span v-if="building.pendingLevel" class="text-xs text-warning-400">
+                → {{ building.pendingLevel }}
+              </span>
+            </div>
           </div>
         </div>
+
+        <!-- Description Tooltip -->
+        <p class="text-xs text-neutral-500 mb-3 line-clamp-2">
+          {{ BUILDINGS[building.type as BuildingType]?.description }}
+        </p>
 
         <!-- Requirements -->
         <GameRequirementList
@@ -239,30 +275,31 @@ const handleUpgrade = async (type: BuildingType) => {
 
         <!-- Cost Display -->
         <div class="text-xs mb-4 space-y-2">
-          <div class="text-neutral-500 uppercase tracking-wider font-display">Chi phí nâng cấp:</div>
+          <div class="text-neutral-500 uppercase tracking-wider">Chi phí nâng cấp:</div>
           <div class="flex gap-3 font-mono">
-            <span class="flex items-center gap-1 text-neutral-400">
+            <span class="flex items-center gap-1 text-neutral-400" :title="'Tinh Thạch'">
               <IconsTinhThach class="w-3.5 h-3.5" />
-              {{ formatNumber(calculateBuildingCost(building.type as BuildingType, building.level + 1).tinhThach) }}
+              {{ formatNumber(calculateBuildingCost(building.type as BuildingType, (building.pendingLevel || building.level) + 1).tinhThach) }}
             </span>
-            <span class="flex items-center gap-1 text-primary-500">
+            <span class="flex items-center gap-1 text-primary-500" :title="'Năng Lượng Vũ Trụ'">
               <IconsNangLuong class="w-3.5 h-3.5" />
-              {{ formatNumber(calculateBuildingCost(building.type as BuildingType, building.level + 1).nangLuongVuTru) }}
+              {{ formatNumber(calculateBuildingCost(building.type as BuildingType, (building.pendingLevel || building.level) + 1).nangLuongVuTru) }}
             </span>
-            <span class="flex items-center gap-1 text-success-400">
+            <span class="flex items-center gap-1 text-success-400" :title="'Hồn Thạch'">
               <IconsHonThach class="w-3.5 h-3.5" />
-              {{ formatNumber(calculateBuildingCost(building.type as BuildingType, building.level + 1).honThach) }}
+              {{ formatNumber(calculateBuildingCost(building.type as BuildingType, (building.pendingLevel || building.level) + 1).honThach) }}
             </span>
           </div>
         </div>
 
         <button
-          class="w-full py-2.5 text-sm font-display font-medium uppercase tracking-wider transition-all relative"
-          :class="canAffordBuilding(building.type as BuildingType, building.level) && !isAnyUpgrading && !upgradingBuildingType && getBuildingRequirements(building.type as BuildingType).every(r => r.met)
+          class="w-full py-2.5 text-sm font-medium uppercase tracking-wider transition-all relative"
+          :class="canAffordBuilding(building.type as BuildingType, building.level) && !isQueueFull && !upgradingBuildingType && getBuildingRequirements(building.type as BuildingType).every(r => r.met)
             ? 'neo-btn-success'
             : 'neo-btn-ghost opacity-50 cursor-not-allowed'
           "
-          :disabled="!canAffordBuilding(building.type as BuildingType, building.level) || isAnyUpgrading || !!upgradingBuildingType || !getBuildingRequirements(building.type as BuildingType).every(r => r.met)"
+          :disabled="!canAffordBuilding(building.type as BuildingType, building.level) || isQueueFull || !!upgradingBuildingType || !getBuildingRequirements(building.type as BuildingType).every(r => r.met)"
+          :title="isQueueFull ? 'Hàng đợi đã đầy (tối đa 3)' : ''"
           @click="handleUpgrade(building.type as BuildingType)"
         >
           <!-- Loading spinner when this building is being upgraded -->
@@ -275,7 +312,7 @@ const handleUpgrade = async (type: BuildingType) => {
           </span>
           <span v-else class="flex items-center justify-center gap-2">
             <IconsNangCap class="w-4 h-4" />
-            Nâng lên cấp {{ building.level + 1 }}
+            {{ buildingQueueItems.length > 0 ? 'Thêm vào hàng đợi' : 'Nâng cấp' }} → {{ (building.pendingLevel || building.level) + 1 }}
           </span>
         </button>
       </div>

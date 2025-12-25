@@ -336,6 +336,9 @@ const handleLogout = async () => {
         <div class="p-3 md:p-6">
           <slot />
         </div>
+
+        <!-- Build Queue Floating Widget -->
+        <GameBuildQueue />
       </template>
     </main>
 

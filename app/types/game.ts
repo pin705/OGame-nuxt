@@ -19,6 +19,7 @@ export enum BuildingType {
   MAY_HAP_THU_NANG_LUONG = 'MAY_HAP_THU_NANG_LUONG',   // Crystal Mine
   DEN_HON_THACH = 'DEN_HON_THACH',                     // Deuterium Synthesizer
   LO_NANG_LUONG = 'LO_NANG_LUONG',                     // Solar Plant
+  LO_NHIET_HACH = 'LO_NHIET_HACH',                     // Fusion Reactor
   
   // Storage Buildings
   KHO_TINH_THACH = 'KHO_TINH_THACH',                   // Metal Storage
@@ -30,7 +31,12 @@ export enum BuildingType {
   XUONG_DONG_TAU = 'XUONG_DONG_TAU',                   // Shipyard
   VIEN_NGHIEN_CUU = 'VIEN_NGHIEN_CUU',                 // Research Lab
   NHA_MAY_ROBOT = 'NHA_MAY_ROBOT',                     // Robotics Factory
+  NHA_MAY_NANITE = 'NHA_MAY_NANITE',                   // Nanite Factory
   PHAO_DAI_PHONG_THU = 'PHAO_DAI_PHONG_THU',           // Defense Facility
+  SILO_TEN_LUA = 'SILO_TEN_LUA',                       // Missile Silo
+  CANG_VU_TRU = 'CANG_VU_TRU',                         // Space Dock
+  MANG_CAM_BIEN = 'MANG_CAM_BIEN',                     // Sensor Phalanx
+  CONG_NHAY = 'CONG_NHAY',                             // Jump Gate
 }
 
 export enum ResearchType {
@@ -52,6 +58,14 @@ export enum ResearchType {
   CONG_NGHE_GIAN_DIEP = 'CONG_NGHE_GIAN_DIEP',         // Espionage Technology
   CONG_NGHE_MAY_TINH = 'CONG_NGHE_MAY_TINH',           // Computer Technology
   CONG_NGHE_SIEU_KHONG_GIAN = 'CONG_NGHE_SIEU_KHONG_GIAN', // Hyperspace Technology
+  
+  // New Advanced Technologies
+  CONG_NGHE_TRONG_LUC = 'CONG_NGHE_TRONG_LUC',         // Graviton Technology
+  CONG_NGHE_LASER = 'CONG_NGHE_LASER',                 // Laser Technology
+  CONG_NGHE_ION = 'CONG_NGHE_ION',                     // Ion Technology
+  CONG_NGHE_PLASMA = 'CONG_NGHE_PLASMA',               // Plasma Technology
+  LIEN_MANG_NGHIEN_CUU = 'LIEN_MANG_NGHIEN_CUU',       // Intergalactic Research Network
+  THUOC_DIA_HOC = 'THUOC_DIA_HOC',                     // Astrophysics
 }
 
 export enum ShipType {

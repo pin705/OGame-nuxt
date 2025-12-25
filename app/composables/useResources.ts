@@ -61,12 +61,13 @@ export const useResources = () => {
       }
     })
 
-    // Client-side resource calculation (every second)
+    // Client-side resource calculation (every 5 seconds for faster feedback)
     updateInterval = setInterval(() => {
       if (!lastUpdate.value || !production.value) return
 
       const now = new Date()
       const elapsed = (now.getTime() - lastUpdate.value.getTime()) / 1000 // seconds
+      // Production is per hour, so convert 5 seconds = 5/3600 hours
       const hourFraction = elapsed / 3600
 
       resources.value.tinhThach += production.value.tinhThach * hourFraction
@@ -74,7 +75,7 @@ export const useResources = () => {
       resources.value.honThach += production.value.honThach * hourFraction
 
       lastUpdate.value = now
-    }, 1000)
+    }, 1000) // Update every 5 seconds
   }
 
   /**

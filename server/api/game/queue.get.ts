@@ -31,12 +31,12 @@ export default defineEventHandler(async (event) => {
 
     const now = new Date()
 
-    // Get building queue
-    const buildingQueue = await BuildQueueSchema.findOne({
+    // Get ALL building queues (both pending and in-progress)
+    const buildingQueues = await BuildQueueSchema.find({
       planet: planetId,
       queueType: 'BUILDING',
-      status: 'IN_PROGRESS',
-    })
+      status: { $in: ['PENDING', 'IN_PROGRESS'] },
+    }).sort({ queuePosition: 1 })
 
     // Get research queue (player-wide, not planet-specific for research)
     const researchQueue = await BuildQueueSchema.findOne({
@@ -61,25 +61,37 @@ export default defineEventHandler(async (event) => {
 
     const formatQueue = (q: any) => {
       if (!q) return null
-      const endTime = new Date(q.endTime)
-      const remainingSeconds = Math.max(0, Math.floor((endTime.getTime() - now.getTime()) / 1000))
+      const endTime = q.endTime ? new Date(q.endTime) : null
+      const remainingSeconds = endTime 
+        ? Math.max(0, Math.floor((endTime.getTime() - now.getTime()) / 1000))
+        : null
       
       return {
         id: q._id,
         type: q.itemType,
         level: q.targetLevel,
         count: q.count,
+        queuePosition: q.queuePosition,
+        durationSeconds: q.durationSeconds,
         startTime: q.startTime,
         endTime: q.endTime,
         remainingSeconds,
-        isComplete: remainingSeconds <= 0,
+        status: q.status,
+        isComplete: q.status === 'IN_PROGRESS' && remainingSeconds !== null && remainingSeconds <= 0,
       }
     }
+
+    // Get the first building (currently in progress)
+    const currentBuilding = buildingQueues.find(q => q.status === 'IN_PROGRESS')
+    const pendingBuildings = buildingQueues.filter(q => q.status === 'PENDING')
 
     return {
       success: true,
       data: {
-        building: formatQueue(buildingQueue),
+        // Currently building (for backwards compatibility)
+        building: formatQueue(currentBuilding),
+        // All building queue items
+        buildingQueue: buildingQueues.map(formatQueue),
         research: formatQueue(researchQueue),
         ships: shipQueue.map(formatQueue),
         defenses: defenseQueue.map(formatQueue),

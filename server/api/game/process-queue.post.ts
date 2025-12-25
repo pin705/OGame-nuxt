@@ -125,6 +125,37 @@ async function completeBuildingUpgrade(build: any) {
 
   // Update points
   await calculatePlayerPoints(planet.owner.toString())
+
+  // Start next building in queue if any
+  await startNextPendingBuild(build.planet)
+}
+
+// Start the next pending building in queue
+async function startNextPendingBuild(planetId: string) {
+  const nextPending = await BuildQueueSchema.findOne({
+    planet: planetId,
+    queueType: 'BUILDING',
+    status: 'PENDING',
+  }).sort({ queuePosition: 1 })
+
+  if (nextPending) {
+    const now = new Date()
+    nextPending.status = 'IN_PROGRESS'
+    nextPending.startTime = now
+    nextPending.endTime = new Date(now.getTime() + (nextPending.durationSeconds || 60) * 1000)
+    await nextPending.save()
+
+    // Update queue positions for remaining items
+    await BuildQueueSchema.updateMany(
+      {
+        planet: planetId,
+        queueType: 'BUILDING',
+        status: { $in: ['PENDING', 'IN_PROGRESS'] },
+        queuePosition: { $gt: 1 },
+      },
+      { $inc: { queuePosition: -1 } }
+    )
+  }
 }
 
 async function completeResearch(build: any) {

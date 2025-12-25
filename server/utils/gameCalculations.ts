@@ -61,6 +61,11 @@ export const BUILDING_COSTS: Record<BuildingType, {
     costFactor: 1.5,
     energyProduction: 20,
   },
+  [BuildingType.LO_NHIET_HACH]: {
+    baseCost: { tinhThach: 900, nangLuongVuTru: 360, honThach: 180 },
+    costFactor: 1.8,
+    energyProduction: 50,
+  },
   [BuildingType.KHO_TINH_THACH]: {
     baseCost: { tinhThach: 1000, nangLuongVuTru: 0, honThach: 0 },
     costFactor: 2,
@@ -89,8 +94,28 @@ export const BUILDING_COSTS: Record<BuildingType, {
     baseCost: { tinhThach: 400, nangLuongVuTru: 120, honThach: 200 },
     costFactor: 2,
   },
+  [BuildingType.NHA_MAY_NANITE]: {
+    baseCost: { tinhThach: 1000000, nangLuongVuTru: 500000, honThach: 100000 },
+    costFactor: 2,
+  },
   [BuildingType.PHAO_DAI_PHONG_THU]: {
     baseCost: { tinhThach: 1000, nangLuongVuTru: 500, honThach: 0 },
+    costFactor: 2,
+  },
+  [BuildingType.SILO_TEN_LUA]: {
+    baseCost: { tinhThach: 20000, nangLuongVuTru: 20000, honThach: 1000 },
+    costFactor: 2,
+  },
+  [BuildingType.CANG_VU_TRU]: {
+    baseCost: { tinhThach: 200, nangLuongVuTru: 0, honThach: 50 },
+    costFactor: 5,
+  },
+  [BuildingType.MANG_CAM_BIEN]: {
+    baseCost: { tinhThach: 20000, nangLuongVuTru: 40000, honThach: 20000 },
+    costFactor: 2,
+  },
+  [BuildingType.CONG_NHAY]: {
+    baseCost: { tinhThach: 2000000, nangLuongVuTru: 4000000, honThach: 2000000 },
     costFactor: 2,
   },
 }

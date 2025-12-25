@@ -187,6 +187,32 @@ export const useGame = () => {
     }
   }
 
+  // Cancel a building in queue
+  const cancelBuilding = async (queueId: string) => {
+    if (!currentPlanetId.value) return { success: false, error: 'No planet selected' }
+
+    try {
+      const response = await $fetch('/api/game/building/cancel', {
+        method: 'POST',
+        body: {
+          queueId,
+          planetId: currentPlanetId.value,
+        },
+      })
+
+      if (response.success) {
+        await Promise.all([
+          fetchPlanet(),
+          fetchBuildQueue(),
+        ])
+      }
+
+      return response
+    } catch (error: any) {
+      return { success: false, error: error.data?.message || 'Cancel failed' }
+    }
+  }
+
   return {
     // State
     currentPlanetId,
@@ -206,5 +232,6 @@ export const useGame = () => {
     upgradeBuilding,
     startResearch,
     buildShips,
+    cancelBuilding,
   }
 }
