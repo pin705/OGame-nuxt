@@ -1,5 +1,26 @@
 import { requireAuth } from '~~/server/utils/auth'
 
+// Type for planet document
+interface PlanetDoc {
+  _id: string
+  owner: { toString(): string }
+  resources: { tinhThach: number; nangLuongVuTru: number; honThach: number; dienNang: number }
+  save(): Promise<void>
+}
+
+// Type for queue document
+interface QueueDoc {
+  _id: string
+  planet: { toString(): string }
+  status: string
+  queuePosition: number
+  cost?: { tinhThach?: number; nangLuongVuTru?: number; honThach?: number }
+  durationSeconds?: number
+  startTime?: Date
+  endTime?: Date
+  save(): Promise<void>
+}
+
 export default defineEventHandler(async (event) => {
   const auth = await requireAuth(event)
   const body = await readBody(event)
@@ -13,7 +34,7 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    const planet = await PlanetSchema.findById(planetId)
+    const planet = await PlanetSchema.findById(planetId) as PlanetDoc | null
     if (!planet) {
       throw createError({
         statusCode: 404,
@@ -28,7 +49,7 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    const queueItem = await BuildQueueSchema.findById(queueId)
+    const queueItem = await BuildQueueSchema.findById(queueId) as QueueDoc | null
     if (!queueItem) {
       throw createError({
         statusCode: 404,
@@ -83,7 +104,7 @@ export default defineEventHandler(async (event) => {
         planet: planetId,
         queueType: 'BUILDING',
         status: 'PENDING',
-      }).sort({ queuePosition: 1 })
+      }).sort({ queuePosition: 1 }) as QueueDoc | null
 
       if (nextPending) {
         const now = new Date()

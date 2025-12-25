@@ -3,6 +3,7 @@
 
 import { notifyBuildingComplete, notifyResearchComplete, notifyShipComplete, notifyFleetUpdate } from '~~/server/routes/_ws'
 import { calculatePlayerPoints } from '~~/server/utils/points'
+import { awardExperience, XP_REWARDS } from '~~/server/utils/levelSystem'
 
 export default defineEventHandler(async (event) => {
   const now = new Date()
@@ -115,12 +116,20 @@ async function completeBuildingUpgrade(build: any) {
   build.status = 'COMPLETED'
   await build.save()
 
+  // Award experience for completing building
+  const xpGained = XP_REWARDS.BUILDING_COMPLETE(build.targetLevel)
+  const xpResult = await awardExperience(planet.owner.toString(), xpGained)
+
   // Send WebSocket notification
   notifyBuildingComplete(planet.owner.toString(), {
     buildingType: build.itemType,
     level: build.targetLevel,
     planetId: planet._id,
     planetName: planet.name,
+    xpGained,
+    leveledUp: xpResult.leveledUp,
+    newLevel: xpResult.newLevel,
+    newRank: xpResult.newRank,
   })
 
   // Update points
@@ -181,10 +190,15 @@ async function completeResearch(build: any) {
   build.status = 'COMPLETED'
   await build.save()
 
+  // Award experience for completing research
+  const xpGained = XP_REWARDS.RESEARCH_COMPLETE(build.targetLevel)
+  await awardExperience(player._id.toString(), xpGained)
+
   // Send WebSocket notification
   notifyResearchComplete(player._id.toString(), {
     researchType: build.itemType,
     level: build.targetLevel,
+    xpGained,
   })
 
   // Update points

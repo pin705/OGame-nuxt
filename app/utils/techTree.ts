@@ -7,11 +7,22 @@ export interface Requirement {
   currentLevel: number
   met: boolean
   name: string
+  category: 'building' | 'research' // Added to help with navigation
 }
 
 export interface RequirementsCheckResult {
   met: boolean
   requirements: Requirement[]
+}
+
+/**
+ * Get navigation path for a requirement
+ */
+export function getRequirementPath(req: Requirement): string {
+  if (req.category === 'research') {
+    return '/game/research'
+  }
+  return '/game/buildings'
 }
 
 export function checkRequirements(
@@ -40,7 +51,8 @@ export function checkRequirements(
         level: req.level,
         currentLevel,
         met,
-        name: BUILDINGS[req.type]?.name || req.type
+        name: BUILDINGS[req.type]?.name || req.type,
+        category: 'building',
       })
     }
   }
@@ -59,7 +71,8 @@ export function checkRequirements(
         level: req.level,
         currentLevel,
         met,
-        name: RESEARCHES[req.type]?.name || req.type
+        name: RESEARCHES[req.type]?.name || req.type,
+        category: 'research',
       })
     }
   }

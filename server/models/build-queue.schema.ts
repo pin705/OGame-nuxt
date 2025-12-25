@@ -1,62 +1,61 @@
 import { defineMongooseModel } from '#nuxt/mongoose'
-import { Schema } from 'mongoose'
 
 export const BuildQueueSchema = defineMongooseModel({
   name: 'BuildQueue',
   schema: {
     planet: {
-      type: Schema.Types.ObjectId,
+      type: 'ObjectId',
       ref: 'Planet',
       required: true,
     },
     player: {
-      type: Schema.Types.ObjectId,
+      type: 'ObjectId',
       ref: 'Player',
       required: true,
     },
     queueType: {
-      type: String,
+      type: 'string',
       enum: ['BUILDING', 'RESEARCH', 'SHIP', 'DEFENSE'],
       required: true,
     },
     itemType: {
-      type: String,
+      type: 'string',
       required: true,
     },
     targetLevel: {
-      type: Number,
+      type: 'number',
       min: 1,
     },
     count: {
-      type: Number,
+      type: 'number',
       min: 1,
     },
-    // Queue position for ordering (1, 2, 3)
+    // Queue position for ordering (1, 2, 3, 4, 5, 6)
     queuePosition: {
-      type: Number,
+      type: 'number',
       default: 1,
       min: 1,
-      max: 3,
+      max: 6,
     },
     // Cost stored for refund if cancelled
     cost: {
-      tinhThach: { type: Number, default: 0 },
-      nangLuongVuTru: { type: Number, default: 0 },
-      honThach: { type: Number, default: 0 },
+      tinhThach: { type: 'number', default: 0 },
+      nangLuongVuTru: { type: 'number', default: 0 },
+      honThach: { type: 'number', default: 0 },
     },
     // Duration in seconds
     durationSeconds: {
-      type: Number,
+      type: 'number',
       default: 0,
     },
     startTime: {
-      type: Date,
+      type: 'Date',
     },
     endTime: {
-      type: Date,
+      type: 'Date',
     },
     status: {
-      type: String,
+      type: 'string',
       enum: ['PENDING', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'],
       default: 'PENDING',
     },

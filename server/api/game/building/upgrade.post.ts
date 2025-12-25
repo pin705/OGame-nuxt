@@ -3,7 +3,29 @@ import { BUILDINGS } from '~/config/gameConfig'
 import { checkRequirements } from '~~/server/utils/techTree'
 import { BuildingType } from '~/types/game'
 
-const MAX_QUEUE_SIZE = 3
+// Type for planet document
+interface PlanetDoc {
+  _id: string
+  owner: { toString(): string }
+  buildings: Array<{ type: string; level: number }>
+  resources: { tinhThach: number; nangLuongVuTru: number; honThach: number; dienNang: number }
+  usedFields: number
+  maxFields: number
+  save(): Promise<void>
+}
+
+// Type for queue document
+interface QueueDoc {
+  _id: string
+  status: string
+  itemType: string
+  queuePosition: number
+}
+
+// Max 3 in progress at same time + 3 pending = 6 total
+const MAX_IN_PROGRESS = 3
+const MAX_PENDING = 3
+const MAX_QUEUE_SIZE = MAX_IN_PROGRESS + MAX_PENDING
 
 export default defineEventHandler(async (event) => {
   const auth = await requireAuth(event)
@@ -25,7 +47,7 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    const planet = await PlanetSchema.findById(planetId)
+    const planet = await PlanetSchema.findById(planetId) as PlanetDoc | null
 
     if (!planet) {
       throw createError({
@@ -65,13 +87,17 @@ export default defineEventHandler(async (event) => {
       planet: planetId,
       queueType: 'BUILDING',
       status: { $in: ['PENDING', 'IN_PROGRESS'] },
-    }).sort({ queuePosition: 1 })
+    }).sort({ queuePosition: 1 }) as QueueDoc[]
+
+    // Count in progress and pending separately
+    const inProgressCount = existingQueues.filter(q => q.status === 'IN_PROGRESS').length
+    const pendingCount = existingQueues.filter(q => q.status === 'PENDING').length
 
     // Check max queue size
     if (existingQueues.length >= MAX_QUEUE_SIZE) {
       throw createError({
         statusCode: 409,
-        message: `Hàng đợi đã đầy (tối đa ${MAX_QUEUE_SIZE} công trình)`,
+        message: `Hàng đợi đã đầy (tối đa ${MAX_IN_PROGRESS} đang xây + ${MAX_PENDING} chờ)`,
       })
     }
 
@@ -125,7 +151,8 @@ export default defineEventHandler(async (event) => {
 
     // Determine queue position and status
     const queuePosition = existingQueues.length + 1
-    const isFirstInQueue = queuePosition === 1
+    // Start immediately if we have less than MAX_IN_PROGRESS in progress
+    const shouldStartNow = inProgressCount < MAX_IN_PROGRESS
 
     const now = new Date()
     
@@ -139,14 +166,14 @@ export default defineEventHandler(async (event) => {
       queuePosition,
       cost,
       durationSeconds: buildTimeSeconds,
-      startTime: isFirstInQueue ? now : null,
-      endTime: isFirstInQueue ? new Date(now.getTime() + buildTimeSeconds * 1000) : null,
-      status: isFirstInQueue ? 'IN_PROGRESS' : 'PENDING',
+      startTime: shouldStartNow ? now : null,
+      endTime: shouldStartNow ? new Date(now.getTime() + buildTimeSeconds * 1000) : null,
+      status: shouldStartNow ? 'IN_PROGRESS' : 'PENDING',
     })
 
     return {
       success: true,
-      message: isFirstInQueue 
+      message: shouldStartNow 
         ? `Đang nâng cấp lên cấp ${targetLevel}` 
         : `Đã thêm vào hàng đợi (vị trí ${queuePosition})`,
       data: {
@@ -157,7 +184,7 @@ export default defineEventHandler(async (event) => {
           queuePosition,
           startTime: buildQueue.startTime,
           endTime: buildQueue.endTime,
-          remainingSeconds: isFirstInQueue ? buildTimeSeconds : null,
+          remainingSeconds: shouldStartNow ? buildTimeSeconds : null,
           status: buildQueue.status,
         },
         cost,

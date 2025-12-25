@@ -136,8 +136,10 @@ const canAffordBuilding = (type: BuildingType, currentLevel: number) => {
   )
 }
 
-// Check if queue is full (max 3)
-const isQueueFull = computed(() => buildingQueueItems.value.length >= 3)
+// Check if queue is full (max 3 in progress + 3 pending = 6)
+const isQueueFull = computed(() => buildingQueueItems.value.length >= 6)
+const inProgressCount = computed(() => buildingQueueItems.value.filter((q: any) => q.status === 'IN_PROGRESS').length)
+const pendingCount = computed(() => buildingQueueItems.value.filter((q: any) => q.status === 'PENDING').length)
 
 const getBuildingRequirements = (type: BuildingType) => {
   const config = BUILDINGS[type]
@@ -214,7 +216,7 @@ const handleUpgrade = async (type: BuildingType) => {
           </p>
         </div>
         <div class="text-xs text-neutral-500">
-          {{ buildingQueueItems.length }}/3 trong hàng đợi
+          {{ inProgressCount }}/3 đang xây · {{ pendingCount }}/3 chờ
         </div>
       </div>
       <!-- Progress bar -->
@@ -299,7 +301,7 @@ const handleUpgrade = async (type: BuildingType) => {
             : 'neo-btn-ghost opacity-50 cursor-not-allowed'
           "
           :disabled="!canAffordBuilding(building.type as BuildingType, building.level) || isQueueFull || !!upgradingBuildingType || !getBuildingRequirements(building.type as BuildingType).every(r => r.met)"
-          :title="isQueueFull ? 'Hàng đợi đã đầy (tối đa 3)' : ''"
+          :title="isQueueFull ? 'Hàng đợi đã đầy (tối đa 3 đang xây + 3 chờ)' : ''"
           @click="handleUpgrade(building.type as BuildingType)"
         >
           <!-- Loading spinner when this building is being upgraded -->

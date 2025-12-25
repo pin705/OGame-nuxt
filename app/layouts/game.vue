@@ -14,6 +14,7 @@ const auth = useAuth()
 const game = useGame()
 const countdown = useCountdown()
 const notifications = useNotifications()
+const theme = useTheme()
 
 // Navigation items with component references
 const navigation = [
@@ -63,6 +64,9 @@ const toggleMoreMenu = () => {
 
 // Initialize game on mount
 onMounted(async () => {
+  // Initialize theme
+  theme.init()
+  
   await auth.init()
   if (!auth.isAuthenticated.value) {
     router.push('/login')
@@ -96,17 +100,20 @@ const connectWebSocket = () => {
     })
     
     websocket.on('building_complete', async (event) => {
-      notifications.success('Nâng cấp hoàn tất!', event.data?.buildingName || 'Công trình đã được nâng cấp')
+      const data = event.data as { buildingName?: string } | undefined
+      notifications.success('Nâng cấp hoàn tất!', data?.buildingName || 'Công trình đã được nâng cấp')
       await game.processQueue()
     })
     
     websocket.on('research_complete', async (event) => {
-      notifications.success('Nghiên cứu hoàn tất!', event.data?.researchName || 'Nghiên cứu đã hoàn thành')
+      const data = event.data as { researchName?: string } | undefined
+      notifications.success('Nghiên cứu hoàn tất!', data?.researchName || 'Nghiên cứu đã hoàn thành')
       await game.processQueue()
     })
     
     websocket.on('ship_complete', async (event) => {
-      notifications.success('Đóng tàu hoàn tất!', event.data?.shipName || 'Tàu đã được đóng xong')
+      const data = event.data as { shipName?: string } | undefined
+      notifications.success('Đóng tàu hoàn tất!', data?.shipName || 'Tàu đã được đóng xong')
       await game.processQueue()
     })
     
@@ -184,7 +191,7 @@ const handleLogout = async () => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-space-950">
+  <div class="min-h-screen bg-[var(--space-void)]">
     <!-- Star field background -->
     <div class="star-field" />
     
@@ -193,30 +200,33 @@ const handleLogout = async () => {
 
     <!-- Toast Notifications -->
     <UiNotificationToast />
+    
+    <!-- Resource Gain Effects -->
+    <UiResourceGainEffect />
 
     <!-- Sidebar - Desktop only -->
     <aside
       class="fixed inset-y-0 left-0 z-40 w-64 hidden lg:block"
     >
       <!-- Sidebar inner with glassmorphism -->
-      <div class="h-full bg-[#0D1117]/95 backdrop-blur-2xl border-r border-[rgba(0,209,255,0.15)]">
+      <div class="h-full bg-[var(--glass-bg)] backdrop-blur-2xl border-r border-[var(--border-subtle)]">
         <div class="flex flex-col h-full">
           <!-- Logo -->
-          <div class="p-5 border-b border-[rgba(0,209,255,0.1)]">
+          <div class="p-5 border-b border-[var(--border-subtle)]">
             <NuxtLink to="/game/overview" class="flex items-center gap-3 group">
               <div class="w-11 h-11 relative">
                 <!-- Neon ring effect -->
-                <div class="absolute inset-0 rounded-lg border border-[#00D1FF]/60 group-hover:border-[#00D1FF] transition-colors" />
-                <div class="absolute inset-0 rounded-lg bg-[#00D1FF]/5 group-hover:bg-[#00D1FF]/15 transition-colors" />
+                <div class="absolute inset-0 rounded-lg border border-[var(--accent-cyan)]/60 group-hover:border-[var(--accent-cyan)] transition-colors" />
+                <div class="absolute inset-0 rounded-lg bg-[var(--accent-cyan)]/5 group-hover:bg-[var(--accent-cyan)]/15 transition-colors" />
                 <div class="absolute inset-0 flex items-center justify-center">
-                  <IconsTenLua class="w-5 h-5 text-[#00D1FF]" />
+                  <IconsTenLua class="w-5 h-5 text-[var(--accent-cyan)]" />
                 </div>
               </div>
               <div>
-                <h1 class="font-display font-bold text-lg tracking-wider text-[#00D1FF] drop-shadow-[0_0_10px_rgba(0,209,255,0.5)]">
+                <h1 class="font-display font-bold text-lg tracking-wider text-[var(--accent-cyan)] drop-shadow-[0_0_10px_var(--accent-cyan-glow)]">
                   THÔN PHỆ
                 </h1>
-                <p class="text-[10px] text-neutral-500 tracking-[0.25em] uppercase">Tinh Không</p>
+                <p class="text-[10px] text-[var(--text-muted)] tracking-[0.25em] uppercase">Tinh Không</p>
               </div>
             </NuxtLink>
           </div>
@@ -229,10 +239,10 @@ const handleLogout = async () => {
               :to="item.href"
               class="group flex items-center uppercase gap-3 px-3 py-2.5 rounded-sm text-sm font-medium tracking-wide transition-all duration-200"
               :class="isActiveRoute(item.href) 
-                ? 'bg-[#00D1FF]/15 text-[#00D1FF] border-l-2 border-[#00D1FF] shadow-[inset_0_0_20px_rgba(0,209,255,0.1)]' 
-                : 'text-neutral-400 hover:text-white hover:bg-white/5 border-l-2 border-transparent hover:border-[#00D1FF]/30'"
+                ? 'bg-[var(--accent-cyan)]/15 text-[var(--accent-cyan)] border-l-2 border-[var(--accent-cyan)] shadow-[inset_0_0_20px_var(--accent-cyan-glow)]' 
+                : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-white/5 border-l-2 border-transparent hover:border-[var(--accent-cyan)]/30'"
             >
-              <span class="w-5 h-5 flex items-center justify-center" :class="isActiveRoute(item.href) ? 'text-[#00D1FF] drop-shadow-[0_0_8px_rgba(0,209,255,0.7)]' : 'text-neutral-500 group-hover:text-[#00D1FF]/70'">
+              <span class="w-5 h-5 flex items-center justify-center" :class="isActiveRoute(item.href) ? 'text-[var(--accent-cyan)]' : 'text-[var(--text-muted)] group-hover:text-[var(--accent-cyan)]/70'">
                 <IconsTrungTamChiHuy v-if="item.iconType === 'dashboard'" class="w-5 h-5" />
                 <IconsMoKhoang v-else-if="item.iconType === 'building'" class="w-5 h-5" />
                 <IconsNghienCuu v-else-if="item.iconType === 'research'" class="w-5 h-5" />
@@ -248,28 +258,28 @@ const handleLogout = async () => {
               </span>
               <span>{{ item.name }}</span>
               <!-- Unread badge -->
-              <span v-if="item.iconType === 'message' && unreadMessages > 0" class="ml-auto bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+              <span v-if="item.iconType === 'message' && unreadMessages > 0" class="ml-auto bg-[var(--accent-red)] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
                 {{ unreadMessages }}
               </span>
               <!-- Active indicator glow -->
-              <span v-if="isActiveRoute(item.href)" class="ml-auto w-1.5 h-1.5 rounded-full bg-[#00D1FF] shadow-[0_0_8px_#00D1FF]" />
+              <span v-if="isActiveRoute(item.href)" class="ml-auto w-1.5 h-1.5 rounded-full bg-[var(--accent-cyan)] neo-glow-cyan" />
             </NuxtLink>
           </nav>
 
           <!-- Footer -->
-          <div class="p-3 border-t border-[rgba(0,209,255,0.1)]">
+          <div class="p-3 border-t border-[var(--border-subtle)]">
             <NuxtLink
               to="/game/settings"
               class="group flex items-center gap-3 px-3 py-2.5 rounded-sm text-sm font-medium tracking-wide transition-all duration-200"
               :class="isActiveRoute('/game/settings') 
-                ? 'bg-[#00D1FF]/15 text-[#00D1FF] border-l-2 border-[#00D1FF]' 
-                : 'text-neutral-400 hover:text-white hover:bg-white/5 border-l-2 border-transparent'"
+                ? 'bg-[var(--accent-cyan)]/15 text-[var(--accent-cyan)] border-l-2 border-[var(--accent-cyan)]' 
+                : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-white/5 border-l-2 border-transparent'"
             >
-              <IconsCaiDat class="w-5 h-5" :class="isActiveRoute('/game/settings') ? 'text-[#00D1FF]' : 'text-neutral-500 group-hover:text-[#00D1FF]/70'" />
+              <IconsCaiDat class="w-5 h-5" :class="isActiveRoute('/game/settings') ? 'text-[var(--accent-cyan)]' : 'text-[var(--text-muted)] group-hover:text-[var(--accent-cyan)]/70'" />
               <span>Cài đặt</span>
             </NuxtLink>
             <button
-              class="flex items-center gap-3 px-3 py-2.5 w-full rounded-sm text-sm font-medium text-[#FF3366] hover:bg-[#FF3366]/10 transition-all border-l-2 border-transparent hover:border-[#FF3366]/50"
+              class="flex items-center gap-3 px-3 py-2.5 w-full rounded-sm text-sm font-medium text-[var(--accent-red)] hover:bg-[var(--accent-red)]/10 transition-all border-l-2 border-transparent hover:border-[var(--accent-red)]/50"
               @click="handleLogout"
             >
               <IconsQuayLai class="w-5 h-5" />
@@ -302,33 +312,38 @@ const handleLogout = async () => {
       
       <template v-else>
         <!-- Top bar with resources (Responsive) -->
-        <header class="sticky top-0 z-20 bg-[#0D1117]/95 backdrop-blur-xl border-b border-[rgba(0,209,255,0.1)]">
-          <div class="px-3 py-2">
-            <!-- Mobile: Compact view (icons + numbers only) -->
-            <div class="lg:hidden">
-              <GameResourceBar
-                :tinh-thach="resources.tinhThach"
-                :nang-luong-vu-tru="resources.nangLuongVuTru"
-                :hon-thach="resources.honThach"
-                :dien-nang="resources.dienNang"
-                :dien-nang-max="resources.dienNangMax"
-                show-production
-                :production="production"
-                compact
-              />
+        <header class="sticky top-0 z-20 bg-[var(--glass-bg)] backdrop-blur-xl border-b border-[var(--border-subtle)] resource-bar-container">
+          <div class="px-3 py-2 flex items-center gap-3">
+            <!-- Resources -->
+            <div class="flex-1">
+              <!-- Mobile: Compact view (icons + numbers only) -->
+              <div class="lg:hidden">
+                <GameResourceBar
+                  :tinh-thach="resources.tinhThach"
+                  :nang-luong-vu-tru="resources.nangLuongVuTru"
+                  :hon-thach="resources.honThach"
+                  :dien-nang="resources.dienNang"
+                  :dien-nang-max="resources.dienNangMax"
+                  show-production
+                  :production="production"
+                  compact
+                />
+              </div>
+              <!-- Desktop: Full view (with labels) -->
+              <div class="hidden lg:block">
+                <GameResourceBar
+                  :tinh-thach="resources.tinhThach"
+                  :nang-luong-vu-tru="resources.nangLuongVuTru"
+                  :hon-thach="resources.honThach"
+                  :dien-nang="resources.dienNang"
+                  :dien-nang-max="resources.dienNangMax"
+                  show-production
+                  :production="production"
+                />
+              </div>
             </div>
-            <!-- Desktop: Full view (with labels) -->
-            <div class="hidden lg:block">
-              <GameResourceBar
-                :tinh-thach="resources.tinhThach"
-                :nang-luong-vu-tru="resources.nangLuongVuTru"
-                :hon-thach="resources.honThach"
-                :dien-nang="resources.dienNang"
-                :dien-nang-max="resources.dienNangMax"
-                show-production
-                :production="production"
-              />
-            </div>
+            <!-- Theme Toggle -->
+            <UiThemeToggle />
           </div>
         </header>
 
@@ -347,12 +362,12 @@ const handleLogout = async () => {
       <!-- More menu popup -->
       <div 
         v-if="isMoreMenuOpen"
-        class="absolute bottom-full left-0 right-0 mb-1 mx-2 bg-[#0D1117]/98 backdrop-blur-xl rounded-lg border border-[rgba(0,209,255,0.2)] shadow-2xl overflow-hidden"
+        class="absolute bottom-full left-0 right-0 mb-1 mx-2 bg-[var(--glass-bg)] backdrop-blur-xl rounded-lg border border-[var(--border-subtle)] shadow-2xl overflow-hidden"
       >
         <NuxtLink
           to="/game/research"
           class="flex items-center gap-3 px-4 py-3 text-sm font-medium transition-all"
-          :class="isActiveRoute('/game/research') ? 'bg-[#00D1FF]/15 text-[#00D1FF]' : 'text-neutral-300 hover:bg-white/5'"
+          :class="isActiveRoute('/game/research') ? 'bg-[var(--accent-cyan)]/15 text-[var(--accent-cyan)]' : 'text-[var(--text-secondary)] hover:bg-white/5'"
           @click="isMoreMenuOpen = false"
         >
           <IconsNghienCuu class="w-5 h-5" />
@@ -361,7 +376,7 @@ const handleLogout = async () => {
         <NuxtLink
           to="/game/galaxy"
           class="flex items-center gap-3 px-4 py-3 text-sm font-medium transition-all"
-          :class="isActiveRoute('/game/galaxy') ? 'bg-[#00D1FF]/15 text-[#00D1FF]' : 'text-neutral-300 hover:bg-white/5'"
+          :class="isActiveRoute('/game/galaxy') ? 'bg-[var(--accent-cyan)]/15 text-[var(--accent-cyan)]' : 'text-[var(--text-secondary)] hover:bg-white/5'"
           @click="isMoreMenuOpen = false"
         >
           <IconsThienHa class="w-5 h-5" />
@@ -370,14 +385,14 @@ const handleLogout = async () => {
         <NuxtLink
           to="/game/settings"
           class="flex items-center gap-3 px-4 py-3 text-sm font-medium transition-all"
-          :class="isActiveRoute('/game/settings') ? 'bg-[#00D1FF]/15 text-[#00D1FF]' : 'text-neutral-300 hover:bg-white/5'"
+          :class="isActiveRoute('/game/settings') ? 'bg-[var(--accent-cyan)]/15 text-[var(--accent-cyan)]' : 'text-[var(--text-secondary)] hover:bg-white/5'"
           @click="isMoreMenuOpen = false"
         >
           <IconsCaiDat class="w-5 h-5" />
           <span>Cài đặt</span>
         </NuxtLink>
         <button
-          class="flex items-center gap-3 px-4 py-3 w-full text-sm font-medium text-[#FF3366] hover:bg-[#FF3366]/10 transition-all"
+          class="flex items-center gap-3 px-4 py-3 w-full text-sm font-medium text-[var(--accent-red)] hover:bg-[var(--accent-red)]/10 transition-all"
           @click="handleLogout"
         >
           <IconsQuayLai class="w-5 h-5" />
@@ -386,7 +401,7 @@ const handleLogout = async () => {
       </div>
 
       <!-- Tab bar -->
-      <div class="h-16 bg-[#0D1117]/98 backdrop-blur-xl border-t border-[rgba(0,209,255,0.15)] flex items-center justify-around px-1 safe-area-pb">
+      <div class="h-16 bg-[var(--glass-bg)] backdrop-blur-xl border-t border-[var(--border-subtle)] flex items-center justify-around px-1 safe-area-pb">
         <template v-for="item in mobileNav" :key="item.href || item.name">
           <!-- Regular nav items -->
           <NuxtLink
@@ -394,8 +409,8 @@ const handleLogout = async () => {
             :to="item.href"
             class="flex flex-col items-center justify-center w-14 h-14 rounded-lg transition-all duration-200"
             :class="isActiveRoute(item.href) 
-              ? 'text-[#00D1FF]' 
-              : 'text-neutral-500 active:bg-white/10'"
+              ? 'text-[var(--accent-cyan)]' 
+              : 'text-[var(--text-muted)] active:bg-white/10'"
           >
             <span class="relative">
               <IconsTrungTamChiHuy v-if="item.iconType === 'dashboard'" class="w-6 h-6" />
@@ -405,7 +420,7 @@ const handleLogout = async () => {
               <!-- Active glow -->
               <span 
                 v-if="isActiveRoute(item.href)" 
-                class="absolute -inset-1 bg-[#00D1FF]/20 blur-md rounded-full"
+                class="absolute -inset-1 bg-[var(--accent-cyan)]/20 blur-md rounded-full"
               />
             </span>
             <span class="text-[10px] mt-1 font-medium tracking-wide">{{ item.name }}</span>
@@ -415,14 +430,14 @@ const handleLogout = async () => {
           <button
             v-else
             class="flex flex-col items-center justify-center w-14 h-14 rounded-lg transition-all duration-200"
-            :class="isMoreMenuOpen ? 'text-[#00D1FF]' : 'text-neutral-500 active:bg-white/10'"
+            :class="isMoreMenuOpen ? 'text-[var(--accent-cyan)]' : 'text-[var(--text-muted)] active:bg-white/10'"
             @click="toggleMoreMenu"
           >
             <span class="relative">
               <IconsMenu class="w-6 h-6" />
               <span 
                 v-if="isMoreMenuOpen" 
-                class="absolute -inset-1 bg-[#00D1FF]/20 blur-md rounded-full"
+                class="absolute -inset-1 bg-[var(--accent-cyan)]/20 blur-md rounded-full"
               />
             </span>
             <span class="text-[10px] mt-1 font-medium tracking-wide">{{ item.name }}</span>

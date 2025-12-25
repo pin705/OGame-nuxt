@@ -129,6 +129,7 @@ export interface Resources {
   nangLuongVuTru: number; // Crystal
   honThach: number;       // Deuterium
   dienNang: number;       // Energy
+  dienNangMax?: number;   // Max Energy (optional)
 }
 
 export interface ResourceProduction {

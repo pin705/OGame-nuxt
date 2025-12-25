@@ -140,7 +140,7 @@ const toggle = () => {
                       class="text-xs font-bold px-1.5 py-0.5 rounded"
                       :class="item.status === 'IN_PROGRESS' ? 'bg-primary-500/20 text-primary-400' : 'bg-neutral-700 text-neutral-400'"
                     >
-                      {{ index + 1 }}
+                      {{ Number(index) + 1 }}
                     </span>
                     <span class="text-sm font-medium text-neutral-200 truncate">
                       {{ getItemName(item.type, 'building') }}
@@ -244,8 +244,8 @@ const toggle = () => {
         <div class="px-4 py-2 border-t border-neutral-700/30 bg-space-800/30">
           <div class="flex items-center justify-between text-xs">
             <span class="text-neutral-500">Công trình trong hàng đợi</span>
-            <span class="font-mono" :class="buildingQueue.length >= 3 ? 'text-warning-400' : 'text-neutral-400'">
-              {{ buildingQueue.length }}/3
+            <span class="font-mono" :class="buildingQueue.length >= 6 ? 'text-warning-400' : 'text-neutral-400'">
+              {{ buildingQueue.filter((b: any) => b.status === 'IN_PROGRESS').length }}/3 đang xây · {{ buildingQueue.filter((b: any) => b.status === 'PENDING').length }}/3 chờ
             </span>
           </div>
         </div>
